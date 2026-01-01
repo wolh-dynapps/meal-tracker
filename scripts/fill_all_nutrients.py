@@ -9,7 +9,7 @@ import xml.etree.ElementTree as ET
 
 ROOT = os.path.dirname(os.path.dirname(__file__))
 CIQUAL_DIR = os.path.join(ROOT, 'scripts', 'ciqual')
-PUBLIC_CIQUAL_DIR = os.path.join(ROOT, 'public', 'ciqual')
+PUBLIC_CIQUAL_DIR = os.path.join(ROOT, 'docs', 'ciqual')
 COMPO_FILE = os.path.join(CIQUAL_DIR, 'compo_2025_11_03.xml')
 ALIM_FILE = os.path.join(CIQUAL_DIR, 'alim_2025_11_03.xml')
 OUT_FILE = os.path.join(PUBLIC_CIQUAL_DIR, 'ciqual_index.json')

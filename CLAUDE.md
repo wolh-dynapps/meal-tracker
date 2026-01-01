@@ -10,18 +10,18 @@ Meal Tracker PWA is a lightweight, accessible Progressive Web App for tracking m
 
 ### Development Server
 ```bash
-python3 -m http.server 8001 --directory public   # Serves on http://localhost:8001
+python3 -m http.server 8001 --directory docs   # Serves on http://localhost:8001
 ```
 
 ### Rebuild Ciqual Index
 ```bash
-python3 scripts/fill_all_nutrients.py  # Regenerates public/ciqual/ciqual_index.json from XMLs
+python3 scripts/fill_all_nutrients.py  # Regenerates docs/ciqual/ciqual_index.json from XMLs
 ```
 
 ## Architecture
 
 ### Data Flow
-1. **Production data**: `public/ciqual/ciqual_index.json` (~2.5 MB) - prebuilt food database served to users
+1. **Production data**: `docs/ciqual/ciqual_index.json` (~2.5 MB) - prebuilt food database served to users
 2. **Source data**: `scripts/ciqual/*.xml` (~69 MB) - raw Ciqual XMLs used only for regeneration
 3. **User data**: localStorage stores meal entries client-side
 
@@ -29,13 +29,13 @@ python3 scripts/fill_all_nutrients.py  # Regenerates public/ciqual/ciqual_index.
 
 | File | Purpose |
 |------|---------|
-| `public/js/simple.js` | Core app logic: meal CRUD, Ciqual search, nutrient calculation |
-| `public/sw.js` | Service Worker v2: cache-first for static assets, network-first for data |
+| `docs/js/simple.js` | Core app logic: meal CRUD, Ciqual search, nutrient calculation |
+| `docs/sw.js` | Service Worker v4: cache-first for static assets, network-first for data |
 | `scripts/fill_all_nutrients.py` | Build script: parses Ciqual XMLs → generates JSON index |
 
 ### Pages
-- `public/index.html` - Main app (meal tracking, search, stats)
-- `public/browse.html` - Food database browser (sortable table with pagination)
+- `docs/index.html` - Main app (meal tracking, search, stats)
+- `docs/browse.html` - Food database browser (sortable table with pagination)
 
 ### Nutrient Code Mapping
 The app maps Ciqual const_codes to friendly names:
