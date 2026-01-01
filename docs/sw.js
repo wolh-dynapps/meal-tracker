@@ -1,4 +1,4 @@
-/* Meal Tracker Service Worker v11 - GitHub Pages compatible */
+/* Meal Tracker Service Worker v14 - GitHub Pages compatible */
 
 const CACHE_NAME = 'meal-tracker-v14';
 const RUNTIME_CACHE = 'meal-tracker-runtime-v14';

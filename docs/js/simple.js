@@ -266,7 +266,7 @@ function scheduleReminder(hour, minute, message) {
 
   const delay = scheduled - now;
   setTimeout(() => {
-    new Notification('Meal Tracker', { body: message, icon: '/icons/icon-192.png' });
+    new Notification('Meal Tracker', { body: message });
     // Reschedule for next day
     scheduleReminder(hour, minute, message);
   }, delay);
