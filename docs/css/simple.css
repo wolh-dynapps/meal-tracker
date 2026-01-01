@@ -211,9 +211,10 @@ body {
 }
 
 .tab-btn.active {
-  color: var(--accent);
+  color: var(--accent-dark);
   background: var(--bg-primary);
   border-bottom-color: var(--accent);
+  font-weight: 700;
 }
 
 .tab-content {
