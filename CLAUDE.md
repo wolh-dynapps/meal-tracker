@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Meal Tracker PWA is a lightweight, accessible Progressive Web App for tracking meals and nutritional intake using the French Ciqual food database (41,665+ foods). Built with vanilla JavaScript—no frameworks or dependencies.
+Meal Tracker PWA is a lightweight, accessible Progressive Web App for tracking meals and nutritional intake using the French Ciqual food database (3,400+ foods). Built with vanilla JavaScript—no frameworks or dependencies.
 
 **Live URL:** https://wolh-dynapps.github.io/meal-tracker/
 

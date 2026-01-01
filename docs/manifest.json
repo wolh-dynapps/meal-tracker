@@ -2,8 +2,8 @@
   "name": "Meal Tracker PWA",
   "short_name": "Meals",
   "description": "A lightweight Progressive Web App to track your meals. Works offline.",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#ffffff",
@@ -26,12 +26,12 @@
     {
       "name": "Ajouter repas",
       "short_name": "Ajouter",
-      "url": "/?action=add"
+      "url": "./?action=add"
     },
     {
       "name": "Voir stats",
       "short_name": "Stats",
-      "url": "/?action=stats"
+      "url": "./?action=stats"
     }
   ]
 }

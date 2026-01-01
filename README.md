@@ -1,6 +1,6 @@
 # 🍽️ Meal Tracker PWA
 
-A lightweight, accessible Progressive Web App for tracking your daily meals and nutritional intake using the comprehensive **Ciqual food database** (41,665+ foods).
+A lightweight, accessible Progressive Web App for tracking your daily meals and nutritional intake using the comprehensive **Ciqual food database** (3,400+ foods).
 
 **🌐 Live Demo:** https://wolh-dynapps.github.io/meal-tracker/
 
@@ -112,7 +112,7 @@ python3 scripts/fill_all_nutrients.py
 
 **Ciqual Database** (Public domain)
 - Source: ANSES (French Food Safety Agency)
-- 41,665+ foods with complete nutritional data
+- 3,400+ foods with complete nutritional data
 - Updated: November 2025
 
 ---

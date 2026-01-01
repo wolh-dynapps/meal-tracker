@@ -7,6 +7,9 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - **GitHub Pages Compatibility** — All paths now relative (`./`) for subdirectory hosting
 - **Service Worker v5** — Dynamic base path detection for any hosting environment
+- **browse.html SW Path** — Fixed absolute path that caused 404 on GitHub Pages
+- **manifest.json Paths** — Fixed start_url and scope for subdirectory hosting
+- **Documentation** — Corrected food count from 41,665 to 3,400+ (actual Ciqual foods)
 
 ### Changed
 - **Project Structure** — Renamed `public/` to `docs/` for GitHub Pages deployment
@@ -71,7 +74,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - **Progressive Web App (PWA)** — Installable as standalone app, works offline with Service Worker
-- **Ciqual Food Database Integration** — 41,665+ food items with comprehensive nutritional data
+- **Ciqual Food Database Integration** — 3,400+ food items with comprehensive nutritional data
 - **Food Search & Browser** — Real-time search with sortable table view
 - **Meal Tracking** — Add meals with automatic calorie calculation from food database
 - **Nutrient Breakdown** — Detailed nutritional information per meal
