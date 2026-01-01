@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.0] - 2026-01-01
+
+### Added
+- **Meal Categories** — Categorize meals as breakfast, lunch, dinner, or snack with icons
+- **Edit Meals** — Edit existing meals (name, date, grams, category, notes) via modal
+- **Fuzzy Search** — Typo-tolerant search with scoring algorithm for better food matching
+- **Favorites & Recent Foods** — Quick access to frequently used and recent foods
+- **Macro Nutrient Goals** — Configurable daily targets for protein, fat, and carbs with progress bars
+- **History Chart** — Visual 7-day calorie history chart with daily goal line
+- **Recipes/Composed Meals** — Create and save custom recipes from multiple ingredients
+- **Push Notifications** — Optional meal reminders for breakfast, lunch, and dinner
+- **Offline Sync Queue** — Infrastructure for future cloud sync (stores pending changes)
+
+### Changed
+- **Meal List** — Now shows category icons and notes per meal
+- **Search Suggestions** — Shows favorites and recent foods when input is focused
+
+### Technical
+- **Service Worker v4** — Updated cache version for new features
+- **CSS Variables** — Added macro color variables for themed progress bars
+- **Modal System** — Reusable modal component for edit and recipe dialogs
+
+---
+
 ## [1.1.0] - 2026-01-01
 
 ### Added

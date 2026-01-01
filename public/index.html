@@ -13,85 +13,235 @@
     <div class="header">
       <button class="theme-toggle" id="themeToggle" aria-label="Changer le thème">🌙</button>
       <h1>🍽️ Meal Tracker</h1>
-      <p>Suivi simple de vos repas</p>
-      <div style="margin-top: 15px;">
-        <a href="/browse.html" class="btn-browse">📚 Parcourir les aliments</a>
-      </div>
-      <div id="preloadStatus" class="preload-badge" aria-live="polite">Préchargement…</div>
+      <div id="preloadStatus" class="preload-badge" aria-live="polite">Chargement…</div>
     </div>
 
-    <div class="content">
-      <!-- Goal progress bar -->
-      <div class="goal-section">
-        <div class="goal-header">
-          <label for="goalInput">Objectif journalier</label>
-          <div class="goal-input-wrap">
-            <input type="number" id="goalInput" min="500" max="10000" step="100" aria-label="Objectif calorique">
-            <span>kcal</span>
+    <!-- Tab Navigation -->
+    <nav class="tab-nav" role="tablist">
+      <button class="tab-btn active" data-tab="add" role="tab" aria-selected="true">➕ Ajouter</button>
+      <button class="tab-btn" data-tab="stats" role="tab" aria-selected="false">📊 Stats</button>
+    </nav>
+
+    <!-- Tab: Ajouter -->
+    <div id="tab-add" class="tab-content active" role="tabpanel">
+      <div class="content">
+        <!-- Quick calorie summary -->
+        <div class="quick-summary">
+          <div class="quick-cal">
+            <span class="quick-cal-value" id="todayCalories">0</span>
+            <span class="quick-cal-unit">kcal aujourd'hui</span>
+          </div>
+          <div class="quick-progress">
+            <div class="progress-bar-mini">
+              <div class="progress-fill-mini" id="quickProgress"></div>
+            </div>
+            <span class="quick-goal" id="quickGoalLabel">/ 2000</span>
           </div>
         </div>
-        <div class="progress-bar">
-          <div class="progress-fill" id="goalProgress"></div>
-        </div>
-        <div class="goal-label" id="goalLabel">0 / 2000 kcal (0%)</div>
-      </div>
 
-      <!-- Meal input -->
+        <!-- Food search (prominent) -->
+        <div class="search-section">
+          <label for="foodSearch">Rechercher un aliment</label>
+          <input type="search" id="foodSearch" placeholder="Tapez pour rechercher…" aria-label="Rechercher un aliment" autocomplete="off" class="search-input-large">
+          <div id="foodSuggestions" class="suggestions" role="listbox" aria-live="polite"></div>
+        </div>
+
+        <!-- Quick options row -->
+        <div class="quick-options">
+          <div class="quick-option">
+            <label for="mealDate">Date</label>
+            <input type="date" id="mealDate" required>
+          </div>
+          <div class="quick-option">
+            <label for="foodGrams">Grammes</label>
+            <input type="number" id="foodGrams" min="1" value="100">
+          </div>
+          <div class="quick-option">
+            <label for="mealCategory">Catégorie</label>
+            <select id="mealCategory">
+              <option value="breakfast">🌅 Petit-déj</option>
+              <option value="lunch" selected>☀️ Déjeuner</option>
+              <option value="dinner">🌙 Dîner</option>
+              <option value="snack">🍎 Snack</option>
+            </select>
+          </div>
+        </div>
+
+        <main role="main">
+          <div id="ariaNotifications" aria-live="polite" aria-atomic="true" class="sr-only"></div>
+        </main>
+
+        <!-- Today's meals -->
+        <div class="meals-section">
+          <div class="meals-header">
+            <span>Repas du jour</span>
+            <span class="meals-count" id="todayMeals">0</span>
+          </div>
+          <div id="todayMealsList" class="meals-list"></div>
+        </div>
+
+        <!-- All meals (collapsible) -->
+        <details class="all-meals-details">
+          <summary class="all-meals-summary">
+            📋 Historique complet <span class="meals-count" id="totalMeals">0</span>
+            <button class="btn-clear" id="clearBtn" style="display: none;">Effacer tout</button>
+          </summary>
+          <div id="mealsList" class="meals-list"></div>
+        </details>
+      </div>
+    </div>
+
+    <!-- Tab: Stats -->
+    <div id="tab-stats" class="tab-content" role="tabpanel">
+      <div class="content">
+        <!-- Calorie goal -->
+        <div class="goal-section">
+          <div class="goal-header">
+            <label for="goalInput">Objectif calorique</label>
+            <div class="goal-input-wrap">
+              <input type="number" id="goalInput" min="500" max="10000" step="100">
+              <span>kcal</span>
+            </div>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="goalProgress"></div>
+          </div>
+          <div class="goal-label" id="goalLabel">0 / 2000 kcal (0%)</div>
+        </div>
+
+        <!-- Macro goals -->
+        <div class="macro-section">
+          <div class="section-title">Objectifs macro-nutriments</div>
+          <div class="macro-goals-inputs">
+            <div class="macro-input-group">
+              <label for="proteinGoalInput">Protéines</label>
+              <div class="macro-input-wrap">
+                <input type="number" id="proteinGoalInput" min="0" max="500" step="5">
+                <span>g</span>
+              </div>
+            </div>
+            <div class="macro-input-group">
+              <label for="fatGoalInput">Lipides</label>
+              <div class="macro-input-wrap">
+                <input type="number" id="fatGoalInput" min="0" max="500" step="5">
+                <span>g</span>
+              </div>
+            </div>
+            <div class="macro-input-group">
+              <label for="carbsGoalInput">Glucides</label>
+              <div class="macro-input-wrap">
+                <input type="number" id="carbsGoalInput" min="0" max="500" step="5">
+                <span>g</span>
+              </div>
+            </div>
+          </div>
+          <div class="macro-bars">
+            <div class="macro-bar-group">
+              <div class="macro-bar"><div class="macro-fill protein" id="proteinProgress"></div></div>
+              <div class="macro-label" id="proteinLabel">Protéines: 0g / 50g</div>
+            </div>
+            <div class="macro-bar-group">
+              <div class="macro-bar"><div class="macro-fill fat" id="fatProgress"></div></div>
+              <div class="macro-label" id="fatLabel">Lipides: 0g / 70g</div>
+            </div>
+            <div class="macro-bar-group">
+              <div class="macro-bar"><div class="macro-fill carbs" id="carbsProgress"></div></div>
+              <div class="macro-label" id="carbsLabel">Glucides: 0g / 260g</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- History chart -->
+        <div class="chart-section">
+          <div class="section-title">📈 Historique (7 jours)</div>
+          <canvas id="historyChart" width="560" height="200"></canvas>
+        </div>
+
+        <!-- Recipes -->
+        <div class="recipes-section">
+          <div class="section-header">
+            <span class="section-title">📖 Recettes</span>
+            <button type="button" id="newRecipeBtn" class="btn-small">+ Nouvelle</button>
+          </div>
+          <div id="recipesList" class="recipes-list">
+            <p class="muted">Aucune recette</p>
+          </div>
+        </div>
+
+        <!-- Browse foods link -->
+        <div class="browse-link">
+          <a href="/browse.html" class="btn-secondary">📚 Parcourir les aliments</a>
+        </div>
+
+        <!-- Data actions -->
+        <div class="data-actions">
+          <button type="button" id="exportBtn" class="btn-secondary">📥 Exporter</button>
+          <label class="btn-secondary">
+            📤 Importer
+            <input type="file" id="importInput" accept=".json" hidden>
+          </label>
+          <button type="button" id="enableNotifications" class="btn-secondary">🔔 Rappels</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div id="editModal" class="modal" role="dialog" aria-labelledby="editModalTitle" aria-modal="true">
+    <div class="modal-content">
+      <h2 id="editModalTitle">Modifier le repas</h2>
+      <input type="hidden" id="editMealId">
+      <div class="form-group">
+        <label for="editMealName">Nom</label>
+        <input type="text" id="editMealName" required>
+      </div>
       <div class="form-row">
         <div class="form-group">
-          <label for="mealDate">Date</label>
-          <input type="date" id="mealDate" required>
+          <label for="editMealDate">Date</label>
+          <input type="date" id="editMealDate" required>
         </div>
         <div class="form-group">
-          <label for="foodGrams">Grammes</label>
-          <input type="number" id="foodGrams" min="1" value="100" aria-label="Grammes">
+          <label for="editMealGrams">Grammes</label>
+          <input type="number" id="editMealGrams" min="1" value="100">
         </div>
       </div>
-
       <div class="form-group">
-        <label for="foodSearch">Rechercher un aliment</label>
-        <input type="search" id="foodSearch" placeholder="Tapez pour rechercher…" aria-label="Rechercher un aliment" autocomplete="off">
-        <small class="hint">Utilisez ↑↓ pour naviguer, Entrée pour sélectionner, Échap pour fermer</small>
-        <div id="foodSuggestions" class="suggestions" role="listbox" aria-live="polite"></div>
+        <label for="editMealCategory">Catégorie</label>
+        <select id="editMealCategory">
+          <option value="">— Aucune —</option>
+          <option value="breakfast">🌅 Petit-déjeuner</option>
+          <option value="lunch">☀️ Déjeuner</option>
+          <option value="dinner">🌙 Dîner</option>
+          <option value="snack">🍎 Snack</option>
+        </select>
       </div>
-
-      <div class="stats">
-        <div class="stat-card">
-          <div class="stat-value" id="todayCalories">0</div>
-          <div class="stat-label">Calories aujourd'hui</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value" id="todayMeals">0</div>
-          <div class="stat-label">Repas aujourd'hui</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value" id="totalMeals">0</div>
-          <div class="stat-label">Total</div>
-        </div>
+      <div class="form-group">
+        <label for="editMealNotes">Notes</label>
+        <textarea id="editMealNotes" rows="2" placeholder="Notes optionnelles…"></textarea>
       </div>
-
-      <main role="main">
-        <div id="ariaNotifications" aria-live="polite" aria-atomic="true" class="sr-only"></div>
-      </main>
-
-      <div class="meals-title">
-        <span>📋 Repas</span>
-        <button class="btn-clear" id="clearBtn" style="display: none;">Tout effacer</button>
+      <div class="modal-actions">
+        <button type="button" id="editCancelBtn" class="btn-secondary">Annuler</button>
+        <button type="button" id="editSaveBtn">Enregistrer</button>
       </div>
+    </div>
+  </div>
 
-      <div id="mealsList" class="meals-list">
-        <div class="empty-state">
-          <p>Aucun repas pour le moment</p>
-        </div>
+  <!-- Recipe Modal -->
+  <div id="recipeModal" class="modal" role="dialog" aria-labelledby="recipeModalTitle" aria-modal="true">
+    <div class="modal-content modal-large">
+      <h2 id="recipeModalTitle">Nouvelle recette</h2>
+      <div class="form-group">
+        <label for="recipeName">Nom de la recette</label>
+        <input type="text" id="recipeName" placeholder="Ex: Salade composée" required>
       </div>
-
-      <!-- Export/Import -->
-      <div class="data-actions">
-        <button type="button" id="exportBtn" class="btn-secondary">📥 Exporter</button>
-        <label class="btn-secondary">
-          📤 Importer
-          <input type="file" id="importInput" accept=".json" hidden>
-        </label>
+      <div class="form-group">
+        <label>Ingrédients</label>
+        <div id="recipeIngredients" class="recipe-ingredients-list"></div>
+        <button type="button" id="addIngredientBtn" class="btn-small">+ Ajouter un ingrédient</button>
+      </div>
+      <div class="modal-actions">
+        <button type="button" id="recipeCancelBtn" class="btn-secondary">Annuler</button>
+        <button type="button" id="recipeSaveBtn">Créer la recette</button>
       </div>
     </div>
   </div>
@@ -100,7 +250,7 @@
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js?v=3').then(reg => {
+        navigator.serviceWorker.register('/sw.js?v=4').then(reg => {
           reg.update();
         }).catch(err => console.warn('SW registration failed:', err));
       });
