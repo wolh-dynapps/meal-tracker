@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 - **GitHub Pages Compatibility** — All paths now relative (`./`) for subdirectory hosting
-- **Service Worker v5** — Dynamic base path detection for any hosting environment
+- **Service Worker v6** — Precaches ciqual_index.json for instant first load
 - **browse.html SW Path** — Fixed absolute path that caused 404 on GitHub Pages
 - **manifest.json Paths** — Fixed start_url and scope for subdirectory hosting
 - **Documentation** — Corrected food count from 41,665 to 3,400+ (actual Ciqual foods)

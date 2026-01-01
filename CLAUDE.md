@@ -99,7 +99,7 @@ meal-tracker/
 - URL: https://wolh-dynapps.github.io/meal-tracker/
 
 ### Service Worker
-- Version: v5 (dynamic base path detection)
+- Version: v6 (precaches JSON data for offline-first)
 - Cache strategy: cache-first for static, network-first for data
 - Updates: `skipWaiting()` on install for immediate activation
 
