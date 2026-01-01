@@ -1,0 +1,560 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Parcourir les aliments - Meal Tracker</title>
+  <meta name="description" content="Parcourez la base de données Ciqual et consultez les valeurs nutritionnelles">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      color: #111;
+      font-size: 18px;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      overflow: hidden;
+    }
+
+    header {
+      background: linear-gradient(135deg, #4285F4 0%, #1a73e8 100%);
+      color: white;
+      padding: 30px 20px;
+      text-align: center;
+    }
+
+    header h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    header p {
+      font-size: 16px;
+      opacity: 0.95;
+    }
+
+    .content {
+      padding: 30px 20px;
+    }
+
+    .search-box {
+      margin-bottom: 30px;
+    }
+
+    .search-box label {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: #111;
+      font-size: 16px;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 14px;
+      border: 2px solid #dadce0;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: border-color 0.2s;
+    }
+
+    .search-box input:focus {
+      outline: none;
+      border-color: #1a73e8;
+      box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.15);
+    }
+
+    .search-box input:focus-visible {
+      outline: 3px solid #ffb703;
+      outline-offset: 2px;
+    }
+
+    .stats {
+      background: #f8f9fa;
+      padding: 15px 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      font-size: 14px;
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1a73e8;
+    }
+
+    .stat-label {
+      color: #5f6368;
+      font-weight: 600;
+      margin-top: 5px;
+    }
+
+    .food-list {
+      display: block;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th {
+      background: #1a73e8;
+      color: white;
+      padding: 14px;
+      text-align: left;
+      font-weight: 700;
+      font-size: 14px;
+      border-bottom: 3px solid #0b5ed7;
+      position: sticky;
+      top: 0;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.2s;
+    }
+
+    th:hover {
+      background: #0b5ed7;
+    }
+
+    th[data-sort]::after {
+      content: ' ⬍';
+      opacity: 0.5;
+      font-size: 12px;
+    }
+
+    th.sort-asc::after {
+      content: ' ▲';
+      opacity: 1;
+      color: #ffeb3b;
+    }
+
+    th.sort-desc::after {
+      content: ' ▼';
+      opacity: 1;
+      color: #ffeb3b;
+    }
+
+    td {
+      padding: 12px 14px;
+      border-bottom: 1px solid #e8eef7;
+      font-size: 14px;
+    }
+
+    tr:hover {
+      background: #f0f7ff;
+    }
+
+    tr:focus-within {
+      outline: 3px solid #ffb703;
+      outline-offset: -2px;
+    }
+
+    .food-name {
+      font-weight: 600;
+      color: #111;
+      min-width: 200px;
+    }
+
+    .food-code {
+      background: #e8eef7;
+      color: #1a73e8;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .nutrient-cell {
+      text-align: right;
+      font-weight: 600;
+      color: #1a73e8;
+    }
+
+    .nutrient-cell small {
+      font-size: 11px;
+      color: #5f6368;
+      font-weight: normal;
+      margin-left: 2px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px 20px;
+      font-size: 18px;
+      color: #5f6368;
+    }
+
+    .error {
+      background: #fce8e6;
+      color: #c5221f;
+      padding: 20px;
+      border-radius: 8px;
+      border-left: 4px solid #c5221f;
+      margin-bottom: 20px;
+    }
+
+    .pagination {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 30px;
+      flex-wrap: wrap;
+    }
+
+    .pagination button {
+      padding: 10px 16px;
+      border: 2px solid #dadce0;
+      background: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.2s;
+      color: #1a73e8;
+    }
+
+    .pagination button:hover:not(:disabled) {
+      background: #e8eef7;
+      border-color: #1a73e8;
+    }
+
+    .pagination button:focus-visible {
+      outline: 3px solid #ffb703;
+      outline-offset: 2px;
+    }
+
+    .pagination button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      color: #5f6368;
+    }
+
+    .pagination button.active {
+      background: #1a73e8;
+      color: white;
+      border-color: #1a73e8;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-bottom: 20px;
+      padding: 10px 16px;
+      background: #e8eef7;
+      color: #1a73e8;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: 600;
+      transition: all 0.2s;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      font-family: inherit;
+    }
+
+    .back-link:hover {
+      background: #1a73e8;
+      color: white;
+    }
+
+    .back-link:focus-visible {
+      outline: 3px solid #ffb703;
+      outline-offset: 2px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+
+    @media (max-width: 600px) {
+      table {
+        font-size: 12px;
+      }
+
+      th, td {
+        padding: 8px;
+      }
+
+      .food-name {
+        min-width: 120px;
+      }
+    }
+
+    .sr-only {
+      position: absolute !important;
+      height: 1px; width: 1px;
+      overflow: hidden;
+      clip: rect(1px, 1px, 1px, 1px);
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🥕 Parcourir les aliments</h1>
+      <p>Consultez la base de données Ciqual et les valeurs nutritionnelles</p>
+    </header>
+
+    <main class="content" role="main">
+      <button class="back-link" onclick="window.history.back()">← Retour au Meal Tracker</button>
+
+      <div class="search-box">
+        <label for="searchFood">Rechercher un aliment</label>
+        <input 
+          type="search" 
+          id="searchFood" 
+          placeholder="ex: pomme, pain, poulet..."
+          aria-label="Rechercher dans la base de données"
+          aria-describedby="searchHint"
+        >
+        <span id="searchHint" class="sr-only">Tapez le nom d'un aliment pour filtrer la liste</span>
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-value" id="totalCount">0</div>
+          <div class="stat-label">Aliments trouvés</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" id="resultCount">0</div>
+          <div class="stat-label">Résultats</div>
+        </div>
+      </div>
+
+      <div id="message" aria-live="polite" aria-atomic="true" class="sr-only"></div>
+
+      <div class="error" id="errorBox" style="display:none;"></div>
+
+      <div class="loading" id="loading">⏳ Chargement des aliments...</div>
+
+      <div class="food-list" id="foodList">
+        <table id="foodTable">
+          <thead>
+            <tr>
+              <th data-sort="name" onclick="setSortBy('name')">Aliment</th>
+              <th data-sort="code" onclick="setSortBy('code')">Code</th>
+              <th data-sort="energy_kcal" onclick="setSortBy('energy_kcal')">Énergie (kcal)</th>
+              <th data-sort="protein_g" onclick="setSortBy('protein_g')">Protéines (g)</th>
+              <th data-sort="fat_g" onclick="setSortBy('fat_g')">Lipides (g)</th>
+              <th data-sort="carbs_g" onclick="setSortBy('carbs_g')">Glucides (g)</th>
+              <th data-sort="fiber_g" onclick="setSortBy('fiber_g')">Fibres (g)</th>
+              <th data-sort="sodium_mg" onclick="setSortBy('sodium_mg')">Sodium (mg)</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pagination" id="pagination"></div>
+    </main>
+  </div>
+
+  <script>
+    const ITEMS_PER_PAGE = 20;
+    let allFoods = [];
+    let filteredFoods = [];
+    let currentPage = 1;
+    let sortBy = 'name'; // default sort
+    let sortAsc = true; // ascending
+
+    const NUTRIENT_LABELS = {
+      'energy_kcal': { label: 'Énergie', unit: 'kcal' },
+      'energy_kj': { label: 'Énergie', unit: 'kJ' },
+      'protein_g': { label: 'Protéines', unit: 'g' },
+      'fat_g': { label: 'Lipides', unit: 'g' },
+      'carbs_g': { label: 'Glucides', unit: 'g' },
+      'sugars_g': { label: 'Sucres', unit: 'g' },
+      'fiber_g': { label: 'Fibres', unit: 'g' },
+      'sodium_mg': { label: 'Sodium', unit: 'mg' }
+    };
+
+    // Load data
+    async function loadData() {
+      try {
+        const resp = await fetch('/ciqual/ciqual_index.json');
+        if (!resp.ok) throw new Error('Impossible de charger les données');
+        const data = await resp.json();
+        
+        // Convert to array and sort by name
+        allFoods = Object.entries(data).map(([code, item]) => ({
+          code,
+          name: item.name || '',
+          ...item
+        })).sort((a, b) => a.name.localeCompare(b.name, 'fr'));
+
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('totalCount').textContent = allFoods.length;
+        filteredFoods = [...allFoods];
+        document.getElementById('resultCount').textContent = filteredFoods.length;
+        applySorting();
+        updateSortIndicators();
+        render();
+      } catch (err) {
+        document.getElementById('loading').style.display = 'none';
+        const box = document.getElementById('errorBox');
+        box.textContent = `Erreur: ${err.message}`;
+        box.style.display = 'block';
+        console.error(err);
+      }
+    }
+
+    // Search
+    document.getElementById('searchFood').addEventListener('input', (e) => {
+      const q = e.target.value.trim().toLowerCase();
+      filteredFoods = allFoods.filter(f => f.name.toLowerCase().includes(q));
+      document.getElementById('resultCount').textContent = filteredFoods.length;
+      currentPage = 1;
+      const msg = document.getElementById('message');
+      msg.textContent = `${filteredFoods.length} aliments trouvés`;
+      applySorting();
+      render();
+    });
+
+    function applySorting() {
+      const factor = sortAsc ? 1 : -1;
+      filteredFoods.sort((a, b) => {
+        let aVal = a[sortBy];
+        let bVal = b[sortBy];
+        
+        if (sortBy === 'name') {
+          return factor * aVal.localeCompare(bVal, 'fr');
+        }
+        
+        // numeric sort
+        aVal = Number(aVal) || 0;
+        bVal = Number(bVal) || 0;
+        return factor * (aVal - bVal);
+      });
+    }
+
+    function setSortBy(field) {
+      if (sortBy === field) {
+        sortAsc = !sortAsc;
+      } else {
+        sortBy = field;
+        sortAsc = true;
+      }
+      currentPage = 1;
+      applySorting();
+      render();
+      updateSortIndicators();
+    }
+
+    function updateSortIndicators() {
+      document.querySelectorAll('th[data-sort]').forEach(th => {
+        th.classList.remove('sort-asc', 'sort-desc');
+        if (th.getAttribute('data-sort') === sortBy) {
+          th.classList.add(sortAsc ? 'sort-asc' : 'sort-desc');
+        }
+      });
+    }
+
+    function render() {
+      const start = (currentPage - 1) * ITEMS_PER_PAGE;
+      const end = start + ITEMS_PER_PAGE;
+      const pageItems = filteredFoods.slice(start, end);
+
+      const tbody = document.getElementById('tableBody');
+      if (pageItems.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px 20px; color: #5f6368;">Aucun aliment trouvé</td></tr>';
+        document.getElementById('pagination').innerHTML = '';
+        return;
+      }
+
+      tbody.innerHTML = pageItems.map(food => `
+        <tr>
+          <td class="food-name">${food.name}</td>
+          <td><span class="food-code">${food.code}</span></td>
+          <td class="nutrient-cell">${food.energy_kcal != null ? Number(food.energy_kcal).toFixed(0) : '—'}</td>
+          <td class="nutrient-cell">${food.protein_g != null ? Number(food.protein_g).toFixed(1) : '—'}</td>
+          <td class="nutrient-cell">${food.fat_g != null ? Number(food.fat_g).toFixed(1) : '—'}</td>
+          <td class="nutrient-cell">${food.carbs_g != null ? Number(food.carbs_g).toFixed(1) : '—'}</td>
+          <td class="nutrient-cell">${food.fiber_g != null ? Number(food.fiber_g).toFixed(1) : '—'}</td>
+          <td class="nutrient-cell">${food.sodium_mg != null ? Number(food.sodium_mg).toFixed(0) : '—'}</td>
+        </tr>
+      `).join('');
+
+      renderPagination();
+    }
+
+    function renderPagination() {
+      const totalPages = Math.ceil(filteredFoods.length / ITEMS_PER_PAGE);
+      const container = document.getElementById('pagination');
+      
+      if (totalPages <= 1) {
+        container.innerHTML = '';
+        return;
+      }
+
+      let html = '';
+      
+      // Prev button
+      if (currentPage > 1) {
+        html += `<button onclick="goToPage(${currentPage - 1})">← Précédent</button>`;
+      }
+
+      // Page numbers
+      for (let i = 1; i <= totalPages; i++) {
+        if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+          html += `<button onclick="goToPage(${i})" ${i === currentPage ? 'class="active"' : ''}>${i}</button>`;
+        } else if (i === currentPage - 2 || i === currentPage + 2) {
+          html += `<button disabled>…</button>`;
+        }
+      }
+
+      // Next button
+      if (currentPage < totalPages) {
+        html += `<button onclick="goToPage(${currentPage + 1})">Suivant →</button>`;
+      }
+
+      container.innerHTML = html;
+    }
+
+    function goToPage(page) {
+      currentPage = page;
+      render();
+      document.querySelector('main').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Load on startup
+    loadData();
+
+    // Register service worker if available
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js?v=2').then(reg => {
+        reg.update();
+      }).catch(err => console.warn('SW registration failed:', err));
+    }
+  </script>
+</body>
+</html>

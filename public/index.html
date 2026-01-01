@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Meal Tracker - PWA version">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="stylesheet" href="/css/simple.css">
+</head>
+<body>
+  <!-- Reuse same markup as simple.html -->
+  <div class="container">
+    <div class="header">
+      <h1>🍽️ Meal Tracker</h1>
+      <p>Suivi simple de vos repas</p>
+      <div style="margin-top: 15px;">
+        <a href="/browse.html" style="display: inline-block; padding: 10px 16px; background: rgba(255,255,255,0.2); color: white; text-decoration: none; border-radius: 6px; font-weight: 600; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">📚 Parcourir les aliments</a>
+      </div>
+      <div id="preloadStatus" class="preload-badge" aria-live="polite">Préchargement…</div>
+    </div>
+
+    <div id="mealControls">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="mealDate">Date</label>
+          <input type="date" id="mealDate" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="foodSearch">Rechercher un aliment (Ciqual)</label>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <input type="search" id="foodSearch" placeholder="Rechercher un aliment..." aria-label="Rechercher un aliment (Ciqual)" style="flex:1;">
+          <input type="number" id="foodGrams" min="1" value="100" style="width:100px;" aria-label="Grammes">
+        </div>
+        <div id="foodSuggestions" class="suggestions" aria-live="polite"></div>
+      </div>
+    </div>
+
+      <div class="stats">
+        <div class="stat-card">
+          <div class="stat-value" id="todayCalories">0</div>
+          <div class="stat-label">Calories aujourd'hui</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="todayMeals">0</div>
+          <div class="stat-label">Repas aujourd'hui</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="totalMeals">0</div>
+          <div class="stat-label">Total</div>
+        </div>
+      </div>
+    <main role="main">
+      <div id="ariaNotifications" aria-live="polite" aria-atomic="true" class="sr-only"></div>
+    </main>
+
+      <div class="meals-title">
+        <span>📋 Repas</span>
+        <button class="btn-clear" id="clearBtn" style="display: none;">Tout effacer</button>
+      </div>
+
+      <div id="mealsList" class="meals-list">
+        <div class="empty-state">
+          <p>Aucun repas pour le moment</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/simple.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js?v=2').then(reg => {
+          reg.update();
+        }).catch(err => console.warn('SW registration failed:', err));
+      });
+    }
+  </script>
+</body>
+</html>
+

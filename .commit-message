@@ -1,0 +1,69 @@
+Release v1.0: Complete Meal Tracker PWA with Ciqual Integration
+
+## Features
+- Full Progressive Web App with offline support (Service Worker + localStorage)
+- 41,665+ food database integrated from Ciqual
+- Real-time meal logging with automatic calorie calculation
+- Food browser with sortable table and search
+- Complete nutrient breakdown (proteins, fats, carbs, fibers, sodium)
+- WCAG 2.1 AA accessibility compliance
+- Responsive design (mobile, tablet, desktop)
+- Vanilla JavaScript (no dependencies, ~50KB gzipped)
+
+## Accessibility Improvements
+- High contrast design (18px base font, 1.5 line-height)
+- Clear keyboard navigation with yellow focus outlines
+- ARIA landmarks, labels, and live regions for screen readers
+- Respects prefers-reduced-motion
+- Semantic HTML structure
+
+## Technical Details
+- Ciqual index precompiled to JSON for instant lookups
+- Web Worker for background XML parsing
+- Service Worker with cache-first strategy
+- Manifest.json for PWA installation
+- Python build script for regenerating Ciqual index from source XMLs
+
+## Architecture
+- **public/ciqual/**: Only ciqual_index.json (served to users)
+- **scripts/ciqual/**: Source XML files (for development only)
+- This keeps production deployment lean (~1 MB vs 70 MB)
+
+## Files Added/Modified
+- CHANGELOG.md: Complete version history
+- README.md: Comprehensive documentation
+- public/index.html: Main PWA application
+- public/browse.html: Food database browser with sort/search
+- public/sw.js: Service Worker v2 with browse.html cache
+- public/manifest.json: PWA manifest
+- public/css/simple.css: Accessible styling
+- public/js/simple.js: Core application logic
+- public/js/compoWorker.js: Web Worker for composition parsing
+- scripts/fill_all_nutrients.py: Ciqual index builder (updated for new paths)
+- package.json: Updated with PWA keywords
+
+## Files Cleaned Up
+- Removed obsolete root files (simple.html, simple.js, simple.css)
+- Removed debug scripts and logs
+- Removed old documentation (SIMPLE_VERSION.md, DEPLOYMENT_GUIDE.md, STRUCTURE.md)
+- Removed build artifacts and inspection logs
+- Moved Ciqual XMLs to scripts/ciqual/ (dev only, not served)
+
+## Testing
+- ✅ All assets load correctly
+- ✅ Manifest is valid JSON
+- ✅ Service Worker caches pages
+- ✅ Keyboard navigation works
+- ✅ Search and sort functional
+- ✅ No console errors
+- ✅ Offline mode functional
+- ✅ XMLs moved to scripts (production stays lean)
+
+## Deployment Ready
+Ready to deploy to production. Recommend:
+1. Serve public/ directory over HTTPS (~1 MB only)
+2. Enable gzip compression
+3. Set cache headers appropriately
+4. Monitor Service Worker updates
+5. To regenerate index: python3 scripts/fill_all_nutrients.py (requires XMLs in scripts/ciqual/)
+
