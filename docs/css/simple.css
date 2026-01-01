@@ -1274,7 +1274,13 @@ button:active { transform: none; }
 
   .quick-options {
     grid-template-columns: 1fr 1fr;
-    gap: 8px;
+    gap: 10px;
+  }
+
+  .quick-option input,
+  .quick-option select {
+    width: 100%;
+    min-width: 0;
   }
 
   .quick-options .quick-option:last-child {
@@ -1320,5 +1326,20 @@ button:active { transform: none; }
   .recipe-ingredient {
     grid-template-columns: 1fr;
     gap: 8px;
+  }
+}
+
+/* Small phones (iPhone 14 and smaller in portrait) */
+@media (max-width: 420px) {
+  .quick-options {
+    grid-template-columns: 1fr;
+  }
+
+  .quick-options .quick-option:last-child {
+    grid-column: span 1;
+  }
+
+  .quick-option input[type="date"] {
+    font-size: 14px;
   }
 }

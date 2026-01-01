@@ -669,7 +669,7 @@
     loadData();
 
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js?v=8').then(reg => {
+      navigator.serviceWorker.register('./sw.js?v=9').then(reg => {
         reg.update();
       }).catch(err => console.warn('SW registration failed:', err));
     }
