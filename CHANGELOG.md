@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.0] - 2026-01-01
+
+### Added
+- **Daily Calorie Goal** — Configurable daily target with visual progress bar
+- **Dark Mode** — Manual toggle + automatic theme based on system preference
+- **Meal Grouping by Day** — Meals are now visually grouped by date with daily totals
+- **Data Export/Import** — Export all meals to JSON, import from backup file
+- **Keyboard Navigation** — Arrow keys (↑/↓) to navigate suggestions, Enter to select, Escape to close
+
+### Changed
+- **Date Picker** — Meals can now be added to any date (not just today)
+- **Improved Search** — Added 200ms debounce to reduce unnecessary filtering
+
+### Fixed
+- **XSS Vulnerability** — All user input is now properly HTML-escaped before rendering
+
+### Removed
+- **Web Worker for XML Parsing** — Removed `compoWorker.js` (no longer needed, JSON index only)
+- **XML Fallback Code** — Cleaned up unused XML loading code from `simple.js`
+
+### Technical
+- **CSS Variables** — Refactored styles with CSS custom properties for theming
+- **Service Worker v3** — Updated cache version for new features
+
+---
+
 ## [1.0.0] - 2026-01-01
 
 ### Added
@@ -25,8 +51,7 @@ All notable changes to this project will be documented in this file.
 
 ### Technical
 - **Client-side Ciqual Index** — Compact JSON index (`ciqual_index.json`) for instant lookups
-- **Web Worker** — Background parsing of large XML files without blocking UI
-- **Service Worker v2** — Cache-first strategy for static assets, network-first for dynamic content
+- **Service Worker** — Cache-first strategy for static assets, network-first for dynamic content
 - **Vanilla JavaScript** — No framework dependencies, lightweight (~50KB gzipped)
 - **Build Scripts** — Python preprocessing to generate compact nutrient index from raw Ciqual XMLs
 - **Optimized Deployment** — Only ~1 MB in production (JSON index), XMLs kept in scripts/ for development
@@ -42,9 +67,8 @@ All notable changes to this project will be documented in this file.
 - `public/index.html` — Main PWA shell
 - `public/browse.html` — Food database browser with search & sort
 - `public/manifest.json` — Web app manifest with icons and theme
-- `public/sw.js` — Service Worker v2 for offline support (caches index + browse pages)
+- `public/sw.js` — Service Worker for offline support
 - `public/js/simple.js` — Core app logic (search, meal management, storage)
-- `public/js/compoWorker.js` — Web Worker for composition parsing
 - `public/css/simple.css` — Accessible, responsive styling
 - `public/ciqual/ciqual_index.json` — Prebuilt food index (3,484 foods, served only)
 - `scripts/ciqual/` — Source Ciqual XMLs (development only, not served)
@@ -58,15 +82,13 @@ All notable changes to this project will be documented in this file.
 
 ### Known Limitations
 - Ciqual index preload happens on app startup (uses prebuilt JSON, ~100ms)
-- Web Worker for background composition parsing available if XMLs needed
-- Energy calculation prefers const_code 328 (kcal), fallback to 327 (kJ) if missing
+- Energy calculation uses const_code 328 (kcal) from JSON index
 
 
 ### Future Enhancements
 - Barcode scanning for food lookup
 - Export meals as PDF or CSV
 - Meal plan templates
-- Nutritional goal tracking (daily targets)
 - Multi-user support with cloud sync
-- Dark mode
 - Additional language support
+- Edit existing meals

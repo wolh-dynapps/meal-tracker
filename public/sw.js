@@ -1,7 +1,7 @@
 /* Meal Tracker Service Worker (single consolidated version) */
 
-const CACHE_NAME = 'meal-tracker-v2';
-const RUNTIME_CACHE = 'meal-tracker-runtime-v2';
+const CACHE_NAME = 'meal-tracker-v3';
+const RUNTIME_CACHE = 'meal-tracker-runtime-v3';
 const STATIC_ASSETS = [
   '/',
   '/index.html',

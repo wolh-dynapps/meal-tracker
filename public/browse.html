@@ -3,9 +3,51 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
   <title>Parcourir les aliments - Meal Tracker</title>
   <meta name="description" content="Parcourez la base de données Ciqual et consultez les valeurs nutritionnelles">
   <style>
+    :root {
+      --bg-primary: #ffffff;
+      --bg-secondary: #f8f9fa;
+      --bg-tertiary: #e8eef7;
+      --text-primary: #111;
+      --text-secondary: #5f6368;
+      --accent: #1a73e8;
+      --accent-dark: #0b5ed7;
+      --border: #dadce0;
+      --shadow: rgba(0,0,0,0.2);
+      --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg-primary: #1e1e1e;
+        --bg-secondary: #2d2d2d;
+        --bg-tertiary: #3d3d3d;
+        --text-primary: #e8eaed;
+        --text-secondary: #9aa0a6;
+        --accent: #8ab4f8;
+        --accent-dark: #4285f4;
+        --border: #5f6368;
+        --shadow: rgba(0,0,0,0.5);
+        --bg-gradient: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      }
+    }
+
+    :root[data-theme="dark"] {
+      --bg-primary: #1e1e1e;
+      --bg-secondary: #2d2d2d;
+      --bg-tertiary: #3d3d3d;
+      --text-primary: #e8eaed;
+      --text-secondary: #9aa0a6;
+      --accent: #8ab4f8;
+      --accent-dark: #4285f4;
+      --border: #5f6368;
+      --shadow: rgba(0,0,0,0.5);
+      --bg-gradient: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    }
+
     * {
       margin: 0;
       padding: 0;
@@ -14,10 +56,10 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: var(--bg-gradient);
       min-height: 100vh;
       padding: 20px;
-      color: #111;
+      color: var(--text-primary);
       font-size: 18px;
       line-height: 1.5;
     }
@@ -25,13 +67,14 @@
     .container {
       max-width: 900px;
       margin: 0 auto;
-      background: white;
+      background: var(--bg-primary);
       border-radius: 12px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      box-shadow: 0 10px 40px var(--shadow);
       overflow: hidden;
     }
 
     header {
+      position: relative;
       background: linear-gradient(135deg, #4285F4 0%, #1a73e8 100%);
       color: white;
       padding: 30px 20px;
@@ -48,6 +91,28 @@
       opacity: 0.95;
     }
 
+    .theme-toggle {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: rgba(255,255,255,0.2);
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      transition: background 0.2s;
+    }
+
+    .theme-toggle:hover {
+      background: rgba(255,255,255,0.3);
+    }
+
     .content {
       padding: 30px 20px;
     }
@@ -60,22 +125,24 @@
       display: block;
       font-weight: 700;
       margin-bottom: 10px;
-      color: #111;
+      color: var(--text-primary);
       font-size: 16px;
     }
 
     .search-box input {
       width: 100%;
       padding: 14px;
-      border: 2px solid #dadce0;
+      border: 2px solid var(--border);
       border-radius: 8px;
       font-size: 16px;
       transition: border-color 0.2s;
+      background: var(--bg-primary);
+      color: var(--text-primary);
     }
 
     .search-box input:focus {
       outline: none;
-      border-color: #1a73e8;
+      border-color: var(--accent);
       box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.15);
     }
 
@@ -85,7 +152,7 @@
     }
 
     .stats {
-      background: #f8f9fa;
+      background: var(--bg-secondary);
       padding: 15px 20px;
       border-radius: 8px;
       margin-bottom: 20px;
@@ -102,11 +169,11 @@
     .stat-value {
       font-size: 24px;
       font-weight: 700;
-      color: #1a73e8;
+      color: var(--accent);
     }
 
     .stat-label {
-      color: #5f6368;
+      color: var(--text-secondary);
       font-weight: 600;
       margin-top: 5px;
     }
@@ -123,13 +190,13 @@
     }
 
     th {
-      background: #1a73e8;
+      background: var(--accent);
       color: white;
       padding: 14px;
       text-align: left;
       font-weight: 700;
       font-size: 14px;
-      border-bottom: 3px solid #0b5ed7;
+      border-bottom: 3px solid var(--accent-dark);
       position: sticky;
       top: 0;
       cursor: pointer;
@@ -138,7 +205,7 @@
     }
 
     th:hover {
-      background: #0b5ed7;
+      background: var(--accent-dark);
     }
 
     th[data-sort]::after {
@@ -161,12 +228,13 @@
 
     td {
       padding: 12px 14px;
-      border-bottom: 1px solid #e8eef7;
+      border-bottom: 1px solid var(--border);
       font-size: 14px;
+      color: var(--text-primary);
     }
 
     tr:hover {
-      background: #f0f7ff;
+      background: var(--bg-tertiary);
     }
 
     tr:focus-within {
@@ -176,13 +244,13 @@
 
     .food-name {
       font-weight: 600;
-      color: #111;
+      color: var(--text-primary);
       min-width: 200px;
     }
 
     .food-code {
-      background: #e8eef7;
-      color: #1a73e8;
+      background: var(--bg-tertiary);
+      color: var(--accent);
       padding: 4px 8px;
       border-radius: 4px;
       font-weight: 600;
@@ -193,12 +261,12 @@
     .nutrient-cell {
       text-align: right;
       font-weight: 600;
-      color: #1a73e8;
+      color: var(--accent);
     }
 
     .nutrient-cell small {
       font-size: 11px;
-      color: #5f6368;
+      color: var(--text-secondary);
       font-weight: normal;
       margin-left: 2px;
     }
@@ -207,7 +275,7 @@
       text-align: center;
       padding: 40px 20px;
       font-size: 18px;
-      color: #5f6368;
+      color: var(--text-secondary);
     }
 
     .error {
@@ -229,19 +297,19 @@
 
     .pagination button {
       padding: 10px 16px;
-      border: 2px solid #dadce0;
-      background: white;
+      border: 2px solid var(--border);
+      background: var(--bg-primary);
       border-radius: 6px;
       cursor: pointer;
       font-size: 14px;
       font-weight: 600;
       transition: all 0.2s;
-      color: #1a73e8;
+      color: var(--accent);
     }
 
     .pagination button:hover:not(:disabled) {
-      background: #e8eef7;
-      border-color: #1a73e8;
+      background: var(--bg-tertiary);
+      border-color: var(--accent);
     }
 
     .pagination button:focus-visible {
@@ -252,21 +320,21 @@
     .pagination button:disabled {
       opacity: 0.5;
       cursor: not-allowed;
-      color: #5f6368;
+      color: var(--text-secondary);
     }
 
     .pagination button.active {
-      background: #1a73e8;
+      background: var(--accent);
       color: white;
-      border-color: #1a73e8;
+      border-color: var(--accent);
     }
 
     .back-link {
       display: inline-block;
       margin-bottom: 20px;
       padding: 10px 16px;
-      background: #e8eef7;
-      color: #1a73e8;
+      background: var(--bg-tertiary);
+      color: var(--accent);
       text-decoration: none;
       border-radius: 6px;
       font-weight: 600;
@@ -278,7 +346,7 @@
     }
 
     .back-link:hover {
-      background: #1a73e8;
+      background: var(--accent);
       color: white;
     }
 
@@ -295,6 +363,14 @@
     }
 
     @media (max-width: 600px) {
+      body {
+        padding: 0;
+      }
+
+      .container {
+        border-radius: 0;
+      }
+
       table {
         font-size: 12px;
       }
@@ -320,6 +396,7 @@
 <body>
   <div class="container">
     <header>
+      <button class="theme-toggle" id="themeToggle" aria-label="Changer le thème">🌙</button>
       <h1>🥕 Parcourir les aliments</h1>
       <p>Consultez la base de données Ciqual et les valeurs nutritionnelles</p>
     </header>
@@ -329,9 +406,9 @@
 
       <div class="search-box">
         <label for="searchFood">Rechercher un aliment</label>
-        <input 
-          type="search" 
-          id="searchFood" 
+        <input
+          type="search"
+          id="searchFood"
           placeholder="ex: pomme, pain, poulet..."
           aria-label="Rechercher dans la base de données"
           aria-describedby="searchHint"
@@ -380,32 +457,61 @@
   </div>
 
   <script>
+    // ========== THEME ==========
+    const THEME_KEY = 'theme';
+
+    function initTheme() {
+      const saved = localStorage.getItem(THEME_KEY);
+      if (saved) {
+        document.documentElement.setAttribute('data-theme', saved);
+      }
+      updateThemeIcon();
+    }
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+      let newTheme;
+      if (current === 'dark') {
+        newTheme = 'light';
+      } else if (current === 'light') {
+        newTheme = 'dark';
+      } else {
+        newTheme = prefersDark ? 'light' : 'dark';
+      }
+
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem(THEME_KEY, newTheme);
+      updateThemeIcon();
+    }
+
+    function updateThemeIcon() {
+      const btn = document.getElementById('themeToggle');
+      if (!btn) return;
+      const theme = document.documentElement.getAttribute('data-theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const isDark = theme === 'dark' || (!theme && prefersDark);
+      btn.textContent = isDark ? '☀️' : '🌙';
+    }
+
+    initTheme();
+    document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+
+    // ========== DATA ==========
     const ITEMS_PER_PAGE = 20;
     let allFoods = [];
     let filteredFoods = [];
     let currentPage = 1;
-    let sortBy = 'name'; // default sort
-    let sortAsc = true; // ascending
+    let sortBy = 'name';
+    let sortAsc = true;
 
-    const NUTRIENT_LABELS = {
-      'energy_kcal': { label: 'Énergie', unit: 'kcal' },
-      'energy_kj': { label: 'Énergie', unit: 'kJ' },
-      'protein_g': { label: 'Protéines', unit: 'g' },
-      'fat_g': { label: 'Lipides', unit: 'g' },
-      'carbs_g': { label: 'Glucides', unit: 'g' },
-      'sugars_g': { label: 'Sucres', unit: 'g' },
-      'fiber_g': { label: 'Fibres', unit: 'g' },
-      'sodium_mg': { label: 'Sodium', unit: 'mg' }
-    };
-
-    // Load data
     async function loadData() {
       try {
         const resp = await fetch('/ciqual/ciqual_index.json');
         if (!resp.ok) throw new Error('Impossible de charger les données');
         const data = await resp.json();
-        
-        // Convert to array and sort by name
+
         allFoods = Object.entries(data).map(([code, item]) => ({
           code,
           name: item.name || '',
@@ -428,14 +534,12 @@
       }
     }
 
-    // Search
     document.getElementById('searchFood').addEventListener('input', (e) => {
       const q = e.target.value.trim().toLowerCase();
       filteredFoods = allFoods.filter(f => f.name.toLowerCase().includes(q));
       document.getElementById('resultCount').textContent = filteredFoods.length;
       currentPage = 1;
-      const msg = document.getElementById('message');
-      msg.textContent = `${filteredFoods.length} aliments trouvés`;
+      document.getElementById('message').textContent = `${filteredFoods.length} aliments trouvés`;
       applySorting();
       render();
     });
@@ -445,12 +549,11 @@
       filteredFoods.sort((a, b) => {
         let aVal = a[sortBy];
         let bVal = b[sortBy];
-        
+
         if (sortBy === 'name') {
           return factor * aVal.localeCompare(bVal, 'fr');
         }
-        
-        // numeric sort
+
         aVal = Number(aVal) || 0;
         bVal = Number(bVal) || 0;
         return factor * (aVal - bVal);
@@ -479,6 +582,12 @@
       });
     }
 
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
     function render() {
       const start = (currentPage - 1) * ITEMS_PER_PAGE;
       const end = start + ITEMS_PER_PAGE;
@@ -486,14 +595,14 @@
 
       const tbody = document.getElementById('tableBody');
       if (pageItems.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px 20px; color: #5f6368;">Aucun aliment trouvé</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px 20px;">Aucun aliment trouvé</td></tr>';
         document.getElementById('pagination').innerHTML = '';
         return;
       }
 
       tbody.innerHTML = pageItems.map(food => `
         <tr>
-          <td class="food-name">${food.name}</td>
+          <td class="food-name">${escapeHtml(food.name)}</td>
           <td><span class="food-code">${food.code}</span></td>
           <td class="nutrient-cell">${food.energy_kcal != null ? Number(food.energy_kcal).toFixed(0) : '—'}</td>
           <td class="nutrient-cell">${food.protein_g != null ? Number(food.protein_g).toFixed(1) : '—'}</td>
@@ -510,20 +619,18 @@
     function renderPagination() {
       const totalPages = Math.ceil(filteredFoods.length / ITEMS_PER_PAGE);
       const container = document.getElementById('pagination');
-      
+
       if (totalPages <= 1) {
         container.innerHTML = '';
         return;
       }
 
       let html = '';
-      
-      // Prev button
+
       if (currentPage > 1) {
         html += `<button onclick="goToPage(${currentPage - 1})">← Précédent</button>`;
       }
 
-      // Page numbers
       for (let i = 1; i <= totalPages; i++) {
         if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
           html += `<button onclick="goToPage(${i})" ${i === currentPage ? 'class="active"' : ''}>${i}</button>`;
@@ -532,7 +639,6 @@
         }
       }
 
-      // Next button
       if (currentPage < totalPages) {
         html += `<button onclick="goToPage(${currentPage + 1})">Suivant →</button>`;
       }
@@ -546,12 +652,10 @@
       document.querySelector('main').scrollIntoView({ behavior: 'smooth' });
     }
 
-    // Load on startup
     loadData();
 
-    // Register service worker if available
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js?v=2').then(reg => {
+      navigator.serviceWorker.register('/sw.js?v=3').then(reg => {
         reg.update();
       }).catch(err => console.warn('SW registration failed:', err));
     }
