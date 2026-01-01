@@ -1331,15 +1331,34 @@ button:active { transform: none; }
 
 /* Small phones (iPhone 14 and smaller in portrait) */
 @media (max-width: 420px) {
+  .content {
+    overflow-x: hidden;
+  }
+
   .quick-options {
     grid-template-columns: 1fr;
+    width: 100%;
   }
 
   .quick-options .quick-option:last-child {
     grid-column: span 1;
   }
 
+  .quick-option {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .quick-option input,
+  .quick-option select {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
   .quick-option input[type="date"] {
-    font-size: 14px;
+    -webkit-appearance: none;
+    appearance: none;
   }
 }
