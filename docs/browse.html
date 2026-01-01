@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="color-scheme" content="light dark">
   <title>Parcourir les aliments - Meal Tracker</title>
   <meta name="description" content="Parcourez la base de données Ciqual et consultez les valeurs nutritionnelles">
@@ -59,6 +59,10 @@
       background: var(--bg-gradient);
       min-height: 100vh;
       padding: 20px;
+      padding-top: max(20px, env(safe-area-inset-top));
+      padding-bottom: max(20px, env(safe-area-inset-bottom));
+      padding-left: max(20px, env(safe-area-inset-left));
+      padding-right: max(20px, env(safe-area-inset-right));
       color: var(--text-primary);
       font-size: 18px;
       line-height: 1.5;
@@ -365,10 +369,15 @@
     @media (max-width: 600px) {
       body {
         padding: 0;
+        padding-top: env(safe-area-inset-top);
+        padding-bottom: env(safe-area-inset-bottom);
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
       }
 
       .container {
         border-radius: 0;
+        padding-bottom: env(safe-area-inset-bottom);
       }
 
       table {
@@ -534,9 +543,14 @@
       }
     }
 
+    // Normalize accents for search (é→e, ô→o, etc.)
+    function normalizeAccents(str) {
+      return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+
     document.getElementById('searchFood').addEventListener('input', (e) => {
-      const q = e.target.value.trim().toLowerCase();
-      filteredFoods = allFoods.filter(f => f.name.toLowerCase().includes(q));
+      const q = normalizeAccents(e.target.value.trim().toLowerCase());
+      filteredFoods = allFoods.filter(f => normalizeAccents(f.name.toLowerCase()).includes(q));
       document.getElementById('resultCount').textContent = filteredFoods.length;
       currentPage = 1;
       document.getElementById('message').textContent = `${filteredFoods.length} aliments trouvés`;
@@ -655,7 +669,7 @@
     loadData();
 
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js?v=7').then(reg => {
+      navigator.serviceWorker.register('./sw.js?v=8').then(reg => {
         reg.update();
       }).catch(err => console.warn('SW registration failed:', err));
     }

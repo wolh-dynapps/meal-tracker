@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.3] - 2026-01-01
+
+### Fixed
+- **Browse Page Search** — Added accent normalization to food browser (matches main app behavior)
+- **iPhone 14 Layout** — Added safe-area-inset padding for notch/dynamic island support
+- **Modal Overlap** — Modals now respect safe-area-insets on iOS devices
+
+### Technical
+- **Service Worker v8** — Updated cache version
+- **viewport-fit=cover** — Added to meta viewport for proper iOS safe area handling
+
+---
+
 ## [1.2.2] - 2026-01-01
 
 ### Added

@@ -73,6 +73,10 @@ body {
   background: var(--bg-gradient);
   min-height: 100vh;
   padding: 20px;
+  padding-top: max(20px, env(safe-area-inset-top));
+  padding-bottom: max(20px, env(safe-area-inset-bottom));
+  padding-left: max(20px, env(safe-area-inset-left));
+  padding-right: max(20px, env(safe-area-inset-right));
   color: var(--text-primary);
   font-size: 18px;
   line-height: 1.5;
@@ -1058,6 +1062,10 @@ button:active { transform: none; }
   align-items: center;
   justify-content: center;
   padding: 20px;
+  padding-top: max(20px, env(safe-area-inset-top));
+  padding-bottom: max(20px, env(safe-area-inset-bottom));
+  padding-left: max(20px, env(safe-area-inset-left));
+  padding-right: max(20px, env(safe-area-inset-right));
 }
 
 .modal.open {
@@ -1236,10 +1244,15 @@ button:active { transform: none; }
 @media (max-width: 600px) {
   body {
     padding: 0;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
   }
 
   .container {
     border-radius: 0;
+    padding-bottom: env(safe-area-inset-bottom);
   }
 
   .header h1 {
