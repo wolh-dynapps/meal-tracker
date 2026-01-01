@@ -4,8 +4,18 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#4285F4">
   <title>Parcourir les aliments - Meal Tracker</title>
-  <meta name="description" content="Parcourez la base de données Ciqual et consultez les valeurs nutritionnelles">
+  <meta name="description" content="Explorez la base de données Ciqual : 3400+ aliments avec valeurs nutritionnelles complètes (calories, protéines, lipides, glucides).">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://wolh-dynapps.github.io/meal-tracker/browse.html">
+  <link rel="manifest" href="./manifest.json">
+  <!-- Open Graph -->
+  <meta property="og:title" content="Base de données alimentaire Ciqual - Meal Tracker">
+  <meta property="og:description" content="3400+ aliments avec valeurs nutritionnelles complètes.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://wolh-dynapps.github.io/meal-tracker/browse.html">
+  <meta property="og:locale" content="fr_FR">
   <style>
     :root {
       --bg-primary: #ffffff;
@@ -400,9 +410,31 @@
       clip: rect(1px, 1px, 1px, 1px);
       white-space: nowrap;
     }
+
+    .skip-link {
+      position: absolute;
+      top: -100px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--accent);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 0 0 8px 8px;
+      font-weight: 700;
+      z-index: 9999;
+      text-decoration: none;
+      transition: top 0.2s;
+    }
+
+    .skip-link:focus {
+      top: 0;
+      outline: 3px solid #ffb703;
+      outline-offset: 2px;
+    }
   </style>
 </head>
 <body>
+  <a href="#main-content" class="skip-link">Aller au contenu principal</a>
   <div class="container">
     <header>
       <button class="theme-toggle" id="themeToggle" aria-label="Changer le thème">🌙</button>
@@ -410,7 +442,7 @@
       <p>Consultez la base de données Ciqual et les valeurs nutritionnelles</p>
     </header>
 
-    <main class="content" role="main">
+    <main class="content" role="main" id="main-content">
       <button class="back-link" onclick="window.history.back()">← Retour au Meal Tracker</button>
 
       <div class="search-box">
@@ -669,7 +701,7 @@
     loadData();
 
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js?v=10').then(reg => {
+      navigator.serviceWorker.register('./sw.js?v=11').then(reg => {
         reg.update();
       }).catch(err => console.warn('SW registration failed:', err));
     }

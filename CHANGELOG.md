@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.4] - 2026-01-01
+
+### Added
+- **Lighthouse Optimizations** — Targeting 100 scores across all categories
+- **SEO Improvements** — Added Open Graph, structured data (JSON-LD), canonical URLs
+- **Skip Links** — Keyboard accessibility for screen reader users
+- **Preloading** — CSS and JS preloaded for faster initial render
+
+### Changed
+- **Enhanced Manifest** — Added categories, lang, dir, improved shortcuts with icons
+- **Meta Tags** — Added theme-color, apple-mobile-web-app-*, robots
+
+### Technical
+- **Service Worker v11** — Updated cache version
+
+---
+
 ## [1.2.3] - 2026-01-01
 
 ### Fixed

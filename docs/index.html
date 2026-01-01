@@ -3,12 +3,48 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="description" content="Meal Tracker - PWA version">
+  <title>Meal Tracker - Suivi de repas</title>
+  <meta name="description" content="Application progressive (PWA) pour suivre vos repas et calories avec la base Ciqual. Fonctionne hors-ligne.">
   <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#4285F4">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Meal Tracker">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://wolh-dynapps.github.io/meal-tracker/">
   <link rel="manifest" href="./manifest.json">
+  <link rel="preload" href="./css/simple.css" as="style">
+  <link rel="preload" href="./js/simple.js" as="script">
   <link rel="stylesheet" href="./css/simple.css">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect fill='%234285F4' width='180' height='180' rx='40'/%3E%3Ctext x='90' y='90' font-size='100' fill='white' text-anchor='middle' dominant-baseline='central'%3E🍽%3C/text%3E%3C/svg%3E">
+  <!-- Open Graph -->
+  <meta property="og:title" content="Meal Tracker - Suivi de repas">
+  <meta property="og:description" content="Suivez vos repas et calories avec la base Ciqual française. PWA hors-ligne.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://wolh-dynapps.github.io/meal-tracker/">
+  <meta property="og:locale" content="fr_FR">
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Meal Tracker",
+    "description": "Application progressive pour suivre vos repas et calories",
+    "url": "https://wolh-dynapps.github.io/meal-tracker/",
+    "applicationCategory": "HealthApplication",
+    "operatingSystem": "Any",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "EUR"
+    }
+  }
+  </script>
 </head>
 <body>
+  <!-- Skip link for accessibility -->
+  <a href="#main-content" class="skip-link">Aller au contenu principal</a>
   <div class="container">
     <div class="header">
       <button class="theme-toggle" id="themeToggle" aria-label="Changer le thème">🌙</button>
@@ -67,7 +103,7 @@
           </div>
         </div>
 
-        <main role="main">
+        <main role="main" id="main-content">
           <div id="ariaNotifications" aria-live="polite" aria-atomic="true" class="sr-only"></div>
         </main>
 
@@ -250,7 +286,7 @@
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=10').then(reg => {
+        navigator.serviceWorker.register('./sw.js?v=11').then(reg => {
           reg.update();
         }).catch(err => console.warn('SW registration failed:', err));
       });
