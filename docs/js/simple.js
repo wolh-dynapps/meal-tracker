@@ -270,7 +270,7 @@ function scheduleReminder(hour, minute, message) {
 // ========== CHARGEMENT CIQUAL ==========
 async function loadCiqualIndex() {
   if (ciqualAlim) return ciqualAlim;
-  const resp = await fetch('/ciqual/ciqual_index.json');
+  const resp = await fetch('./ciqual/ciqual_index.json');
   if (!resp.ok) return null;
   const short = await resp.json();
   ciqualAlim = Object.keys(short).map(k => ({ code: k, name: short[k].name || '' }));

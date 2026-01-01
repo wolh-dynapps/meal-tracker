@@ -1,15 +1,22 @@
-/* Meal Tracker Service Worker (single consolidated version) */
+/* Meal Tracker Service Worker v5 - GitHub Pages compatible */
 
-const CACHE_NAME = 'meal-tracker-v4';
-const RUNTIME_CACHE = 'meal-tracker-runtime-v4';
-const STATIC_ASSETS = [
-  '/',
-  '/index.html',
-  '/browse.html',
-  '/css/simple.css',
-  '/js/simple.js',
-  '/manifest.json'
+const CACHE_NAME = 'meal-tracker-v5';
+const RUNTIME_CACHE = 'meal-tracker-runtime-v5';
+
+// Get base path from service worker location
+const SW_PATH = self.location.pathname;
+const BASE_PATH = SW_PATH.substring(0, SW_PATH.lastIndexOf('/') + 1);
+
+const STATIC_FILES = [
+  'index.html',
+  'browse.html',
+  'css/simple.css',
+  'js/simple.js',
+  'manifest.json'
 ];
+
+const STATIC_ASSETS = STATIC_FILES.map(f => BASE_PATH + f);
+STATIC_ASSETS.push(BASE_PATH); // Add root path
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -34,8 +41,13 @@ self.addEventListener('fetch', (event) => {
   // Only handle same-origin GET requests
   if (url.origin !== self.location.origin) return;
 
-  // Cache-first for static assets
-  if (STATIC_ASSETS.includes(url.pathname) || STATIC_ASSETS.includes(url.pathname + '/')) {
+  // Check if this is a static asset
+  const isStatic = STATIC_ASSETS.some(asset =>
+    url.pathname === asset || url.pathname === asset.replace('index.html', '')
+  );
+
+  if (isStatic) {
+    // Cache-first for static assets
     event.respondWith(
       caches.match(event.request).then((cached) => cached || fetch(event.request).then((res) => {
         if (res && res.status === 200) {
@@ -43,12 +55,12 @@ self.addEventListener('fetch', (event) => {
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
         }
         return res;
-      }).catch(() => caches.match('/index.html')))
+      }).catch(() => caches.match(BASE_PATH + 'index.html')))
     );
     return;
   }
 
-  // Network-first for other requests, fallback to cache
+  // Network-first for other requests (like JSON data), fallback to cache
   event.respondWith(
     fetch(event.request).then((response) => {
       if (response && response.status === 200) {
@@ -56,7 +68,6 @@ self.addEventListener('fetch', (event) => {
         caches.open(RUNTIME_CACHE).then((cache) => cache.put(event.request, copy));
       }
       return response;
-    }).catch(() => caches.match(event.request).then(r => r || caches.match('/index.html')))
+    }).catch(() => caches.match(event.request).then(r => r || caches.match(BASE_PATH + 'index.html')))
   );
 });
-

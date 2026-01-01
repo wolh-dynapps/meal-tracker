@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Meal Tracker - PWA version">
   <meta name="color-scheme" content="light dark">
-  <link rel="manifest" href="/manifest.json">
-  <link rel="stylesheet" href="/css/simple.css">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="stylesheet" href="./css/simple.css">
 </head>
 <body>
   <div class="container">
@@ -170,7 +170,7 @@
 
         <!-- Browse foods link -->
         <div class="browse-link">
-          <a href="/browse.html" class="btn-secondary">📚 Parcourir les aliments</a>
+          <a href="./browse.html" class="btn-secondary">📚 Parcourir les aliments</a>
         </div>
 
         <!-- Data actions -->
@@ -246,11 +246,11 @@
     </div>
   </div>
 
-  <script src="/js/simple.js"></script>
+  <script src="./js/simple.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js?v=4').then(reg => {
+        navigator.serviceWorker.register('./sw.js?v=5').then(reg => {
           reg.update();
         }).catch(err => console.warn('SW registration failed:', err));
       });
