@@ -2,14 +2,31 @@
 
 A lightweight, accessible Progressive Web App for tracking your daily meals and nutritional intake using the comprehensive **Ciqual food database** (41,665+ foods).
 
-**🎯 Key Features:**
-- ✅ Offline support (Service Worker + local storage)
-- ✅ 41,665+ foods from Ciqual database with complete nutritional data
-- ✅ Real-time meal logging with automatic calorie calculation
-- ✅ Detailed nutrient breakdown (proteins, fats, carbs, fibers, sodium)
-- ✅ Accessible design (WCAG 2.1 AA compliant)
-- ✅ Mobile-friendly, responsive layout
-- ✅ Zero dependencies, vanilla JavaScript
+**🌐 Live Demo:** https://wolh-dynapps.github.io/meal-tracker/
+
+---
+
+## ✨ Features
+
+### Core
+- 🔍 **Smart Food Search** — Fuzzy search with typo tolerance
+- 📊 **Macro Tracking** — Calories, protein, fat, carbs with progress bars
+- 📈 **7-Day History** — Visual chart of calorie intake
+- 🗂️ **Meal Categories** — Breakfast, lunch, dinner, snack
+- 📖 **Recipes** — Create composed meals from multiple ingredients
+
+### UX
+- 🌙 **Dark Mode** — Manual toggle + system preference
+- ⭐ **Favorites** — Quick access to frequent foods
+- 🕒 **Recent Foods** — Last used items
+- ✏️ **Edit Meals** — Modify existing entries
+- 💾 **Export/Import** — JSON backup of all data
+
+### Technical
+- 📱 **PWA** — Installable, works offline
+- ♿ **Accessible** — WCAG 2.1 AA compliant
+- 🚀 **Fast** — Vanilla JS, no frameworks
+- 🔔 **Notifications** — Optional meal reminders
 
 ---
 
@@ -17,96 +34,85 @@ A lightweight, accessible Progressive Web App for tracking your daily meals and 
 
 ### Run Locally
 ```bash
-cd meal-tracker
-python3 -m http.server 8001 --directory public
-# Then open: http://localhost:8001
+python3 -m http.server 8001 --directory docs
+# Open: http://localhost:8001
 ```
 
-### Deploy as PWA
-1. Serve `public/` directory over HTTPS
-2. App is installable from browser
-3. Works fully offline
+### Deploy
+The app is hosted on GitHub Pages from the `/docs` folder.
 
 ---
 
 ## 📖 Usage
 
 ### Add a Meal
-1. Enter meal **Date**
-2. **Search** for a food (e.g., "apple", "bread")
-3. Click suggestion to add (default 100g)
-4. Adjust grams; calories auto-calculated
+1. Search for a food in the search box
+2. Click a suggestion to add it
+3. Adjust grams if needed (default: 100g)
+4. Meal is saved with calculated calories
+
+### View Stats
+1. Click the **"📊 Stats"** tab
+2. Configure calorie and macro goals
+3. View 7-day history chart
+4. Manage recipes
 
 ### Browse Foods
-1. Click **"📚 Browse Foods"**
-2. **Search** by name, **Sort** by clicking headers
-3. View nutrition for any food
-
-### Manage Meals
-- Click **"See nutrients"** to view details
-- **Delete** individual meals
-- **Clear all** meals
-
----
-
-## ♿ Accessibility
-
-- ✅ High contrast (dark text on white)
-- ✅ Large fonts (18px base + 1.5 line-height)
-- ✅ Keyboard navigation (Tab, Enter)
-- ✅ Clear focus indicators (yellow)
-- ✅ Screen reader friendly (ARIA)
-- ✅ Respects `prefers-reduced-motion`
+Click **"📚 Parcourir les aliments"** to explore the full Ciqual database.
 
 ---
 
 ## 📂 Project Structure
 
 ```
-public/                     (Served to users, ~1 MB)
-├── index.html              # Main PWA app
-├── browse.html             # Food database browser
-├── manifest.json           # PWA config
-├── sw.js                   # Service Worker v2
-├── css/simple.css          # Accessible styles
-├── js/
-│   ├── simple.js           # Core app logic
-│   └── compoWorker.js      # Web Worker parser
-└── ciqual/
-    └── ciqual_index.json   # Prebuilt food index (3,484 foods)
-
-scripts/                    (Development only)
-├── ciqual/
-│   ├── alim_2025_11_03.xml
-│   ├── const_2025_11_03.xml
-│   └── compo_2025_11_03.xml
-└── fill_all_nutrients.py   # Rebuild index from XMLs
+meal-tracker/
+├── docs/                      # Static files (GitHub Pages)
+│   ├── index.html             # Main app
+│   ├── browse.html            # Food browser
+│   ├── sw.js                  # Service Worker
+│   ├── css/simple.css         # Styles
+│   ├── js/simple.js           # App logic
+│   └── ciqual/ciqual_index.json  # Food database
+├── scripts/
+│   ├── ciqual/*.xml           # Source Ciqual data (dev only)
+│   └── fill_all_nutrients.py  # Build script
+├── CHANGELOG.md
+├── CLAUDE.md                  # Dev guidelines
+└── README.md
 ```
 
-**Key Design Decision:** Ciqual XMLs stored in `scripts/ciqual/` (development) only, not in `public/` (production). Only the prebuilt `ciqual_index.json` is served to users, keeping deployment lean.
+---
+
+## ♿ Accessibility
+
+- High contrast design
+- Large fonts (18px base)
+- Keyboard navigation (Tab, Enter, Arrow keys)
+- Yellow focus indicators
+- ARIA labels and landmarks
+- Respects `prefers-reduced-motion`
 
 ---
 
 ## 🔧 Development
 
-### Rebuild Index
-If you update Ciqual XMLs, regenerate the index:
+### Rebuild Ciqual Index
 ```bash
 python3 scripts/fill_all_nutrients.py
 ```
 
 ### Test Offline
-1. Open DevTools (F12)
-2. Application → Service Workers
-3. Check "Offline" → App still works
+1. Open DevTools → Application → Service Workers
+2. Check "Offline"
+3. App continues to work
 
 ---
 
-## 🌍 Data
+## 🌍 Data Source
 
 **Ciqual Database** (Public domain)
-- Source: ANSES (French Food Safety)
-- 41,665+ foods with nutrition data
+- Source: ANSES (French Food Safety Agency)
+- 41,665+ foods with complete nutritional data
 - Updated: November 2025
 
 ---
@@ -119,7 +125,7 @@ MIT — See [LICENSE](LICENSE)
 
 ## 📝 Changelog
 
-See [CHANGELOG.md](CHANGELOG.md)
+See [CHANGELOG.md](CHANGELOG.md) for version history.
 
 ---
 

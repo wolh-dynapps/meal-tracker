@@ -2,9 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.1] - 2026-01-01
+
+### Fixed
+- **GitHub Pages Compatibility** — All paths now relative (`./`) for subdirectory hosting
+- **Service Worker v5** — Dynamic base path detection for any hosting environment
+
+### Changed
+- **Project Structure** — Renamed `public/` to `docs/` for GitHub Pages deployment
+
+---
+
 ## [1.2.0] - 2026-01-01
 
 ### Added
+- **Tab Navigation** — New UX with "Ajouter" and "Stats" tabs for cleaner interface
 - **Meal Categories** — Categorize meals as breakfast, lunch, dinner, or snack with icons
 - **Edit Meals** — Edit existing meals (name, date, grams, category, notes) via modal
 - **Fuzzy Search** — Typo-tolerant search with scoring algorithm for better food matching
@@ -16,6 +28,9 @@ All notable changes to this project will be documented in this file.
 - **Offline Sync Queue** — Infrastructure for future cloud sync (stores pending changes)
 
 ### Changed
+- **UX Redesign** — Food search is now the primary action on the Add tab
+- **Quick Summary** — Calorie progress shown prominently at top of Add tab
+- **Today's Meals** — Separate section for today's meals, full history in collapsible
 - **Meal List** — Now shows category icons and notes per meal
 - **Search Suggestions** — Shows favorites and recent foods when input is focused
 
@@ -57,62 +72,24 @@ All notable changes to this project will be documented in this file.
 ### Added
 - **Progressive Web App (PWA)** — Installable as standalone app, works offline with Service Worker
 - **Ciqual Food Database Integration** — 41,665+ food items with comprehensive nutritional data
-- **Food Search & Browser** — Real-time search with sortable table view by name, calories, proteins, lipids, carbs, fibers, sodium
+- **Food Search & Browser** — Real-time search with sortable table view
 - **Meal Tracking** — Add meals with automatic calorie calculation from food database
-- **Nutrient Breakdown** — Detailed nutritional information per meal (proteins, lipids, carbs, sugars, fibers, sodium)
-- **Accessibility Features**:
-  - High-contrast design for low-vision users
-  - Clear focus outlines (yellow) for keyboard navigation
-  - ARIA labels, landmarks, and live regions for screen readers
-  - Respects `prefers-reduced-motion` preference
-  - Large, readable fonts (18px base) with 1.5 line-height
-  - Keyboard-accessible UI (Tab, Enter, Arrow keys)
+- **Nutrient Breakdown** — Detailed nutritional information per meal
+- **Accessibility Features** — WCAG 2.1 AA compliant (high contrast, ARIA, keyboard navigation)
 - **Local Storage** — Persistent meal history with date tracking
 - **Responsive Design** — Works seamlessly on desktop, tablet, and mobile
-- **Multi-language Support** — French interface with proper date/locale formatting
-- **Food Browser** — Dedicated page to search and sort 41,665+ foods with complete nutrition data
-- **Sortable Tables** — All 8 nutrient columns sortable with visual indicators (▲/▼)
+- **French Interface** — All UI text and date formatting in French
 
 ### Technical
-- **Client-side Ciqual Index** — Compact JSON index (`ciqual_index.json`) for instant lookups
-- **Service Worker** — Cache-first strategy for static assets, network-first for dynamic content
 - **Vanilla JavaScript** — No framework dependencies, lightweight (~50KB gzipped)
-- **Build Scripts** — Python preprocessing to generate compact nutrient index from raw Ciqual XMLs
-- **Optimized Deployment** — Only ~1 MB in production (JSON index), XMLs kept in scripts/ for development
-- **Manifest.json** — Full PWA configuration with icons, shortcuts, and theme colors
+- **Service Worker** — Cache-first for static assets, network-first for data
+- **Build Scripts** — Python preprocessing to generate JSON index from Ciqual XMLs
 
-### Architecture Decisions
-- Ciqual XMLs stored in `scripts/ciqual/` (development only, not served)
-- Only prebuilt `ciqual_index.json` deployed (production stays lean)
-- Python script available to regenerate index if XMLs are updated
+---
 
-
-### Files & Structure
-- `public/index.html` — Main PWA shell
-- `public/browse.html` — Food database browser with search & sort
-- `public/manifest.json` — Web app manifest with icons and theme
-- `public/sw.js` — Service Worker for offline support
-- `public/js/simple.js` — Core app logic (search, meal management, storage)
-- `public/css/simple.css` — Accessible, responsive styling
-- `public/ciqual/ciqual_index.json` — Prebuilt food index (3,484 foods, served only)
-- `scripts/ciqual/` — Source Ciqual XMLs (development only, not served)
-- `scripts/fill_all_nutrients.py` — Utility to build compact JSON index from XMLs
-
-### Optimizations Applied
-- **Production Size:** Reduced from 70 MB to ~1 MB by moving XMLs out of public/
-- **Deployment:** Only serves JSON index, keeps public/ lean and fast
-- **Development:** XMLs preserved in scripts/ for index regeneration
-- **Build Scripts:** Updated `fill_all_nutrients.py` to work with new paths
-
-### Known Limitations
-- Ciqual index preload happens on app startup (uses prebuilt JSON, ~100ms)
-- Energy calculation uses const_code 328 (kcal) from JSON index
-
-
-### Future Enhancements
+## Future Enhancements
 - Barcode scanning for food lookup
 - Export meals as PDF or CSV
 - Meal plan templates
 - Multi-user support with cloud sync
 - Additional language support
-- Edit existing meals
