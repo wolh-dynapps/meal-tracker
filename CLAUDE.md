@@ -107,8 +107,17 @@ meal-tracker/
 
 ### Before Committing
 1. **Update CHANGELOG.md** with any user-facing changes
-2. **Increment Service Worker version** if caching behavior changes
-3. **Test on localhost** before pushing
+2. **Update README.md** if features, usage, or structure changed
+3. **Update this file (CLAUDE.md)** if architecture, keys, or dev process changed
+4. **Increment Service Worker version** if caching behavior changes
+5. **Test on localhost** before pushing
+
+### Documentation Checklist
+- [ ] New feature? → Add to CHANGELOG.md + README.md features list
+- [ ] New localStorage key? → Add to CLAUDE.md localStorage table
+- [ ] New file/folder? → Update project structure in CLAUDE.md + README.md
+- [ ] Breaking change? → Document migration steps in CHANGELOG.md
+- [ ] Bug fix? → Add to CHANGELOG.md under "Fixed"
 
 ### Code Style
 - Use `escapeHtml()` for any user-generated content (XSS prevention)
