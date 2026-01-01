@@ -2,17 +2,30 @@
 const STORAGE_KEY = 'meals';
 const GOAL_KEY = 'dailyGoal';
 const MACRO_GOALS_KEY = 'macroGoals';
+const MEAL_CATEGORY_GOALS_KEY = 'mealCategoryGoals';
 const THEME_KEY = 'theme';
 const FAVORITES_KEY = 'favorites';
 const RECIPES_KEY = 'recipes';
 const PENDING_SYNC_KEY = 'pendingSync';
 
+const DEFAULT_CATEGORY_GOALS = {
+  breakfast: 400,
+  lunch: 600,
+  dinner: 600,
+  snack: 200
+};
+
 let meals = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
 let dailyGoal = parseInt(localStorage.getItem(GOAL_KEY)) || 2000;
 let macroGoals = JSON.parse(localStorage.getItem(MACRO_GOALS_KEY) || '{"protein":50,"fat":70,"carbs":260}');
+let mealCategoryGoals = JSON.parse(localStorage.getItem(MEAL_CATEGORY_GOALS_KEY) || JSON.stringify(DEFAULT_CATEGORY_GOALS));
 let favorites = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
 let recipes = JSON.parse(localStorage.getItem(RECIPES_KEY) || '[]');
 let pendingSync = JSON.parse(localStorage.getItem(PENDING_SYNC_KEY) || '[]');
+
+// History filters
+let historySearchQuery = '';
+let historyCategoryFilter = '';
 
 // Categories
 const MEAL_CATEGORIES = [
@@ -56,6 +69,12 @@ initTheme();
 
 // Ciqual data cache
 let ciqualAlim = null;
+let ciqualLoadPromise = null; // Prevent concurrent fetches
+const CIQUAL_CACHE_KEY = 'ciqualIndexCache';
+const CIQUAL_CACHE_EXPIRY_KEY = 'ciqualIndexCacheExpiry';
+const CIQUAL_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
+const CIQUAL_MAX_RETRIES = 3;
+const CIQUAL_INITIAL_RETRY_DELAY = 1000; // 1 second
 const DEFAULT_GRAMS = 100;
 
 // ========== UTILITAIRES ==========
@@ -138,6 +157,16 @@ function saveRecipes() {
 
 function saveMacroGoals() {
   localStorage.setItem(MACRO_GOALS_KEY, JSON.stringify(macroGoals));
+}
+
+function saveMealCategoryGoals() {
+  localStorage.setItem(MEAL_CATEGORY_GOALS_KEY, JSON.stringify(mealCategoryGoals));
+}
+
+function setMealCategoryGoal(category, value) {
+  mealCategoryGoals[category] = parseInt(value) || DEFAULT_CATEGORY_GOALS[category];
+  saveMealCategoryGoals();
+  render();
 }
 
 function addToPendingSync(action) {
@@ -273,14 +302,172 @@ function scheduleReminder(hour, minute, message) {
 }
 
 // ========== CHARGEMENT CIQUAL ==========
-async function loadCiqualIndex() {
-  if (ciqualAlim) return ciqualAlim;
-  const resp = await fetch('./ciqual/ciqual_index.json');
-  if (!resp.ok) return null;
-  const short = await resp.json();
-  ciqualAlim = Object.keys(short).map(k => ({ code: k, name: short[k].name || '' }));
-  window.__ciqual_short = short;
-  return ciqualAlim;
+
+// Helper: delay function for exponential backoff
+function delayMs(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// Helper: check if we're online
+function isOnline() {
+  return navigator.onLine !== false;
+}
+
+// Helper: get cached Ciqual data from localStorage
+function getCachedCiqualData() {
+  try {
+    const expiry = localStorage.getItem(CIQUAL_CACHE_EXPIRY_KEY);
+    if (expiry && Date.now() < parseInt(expiry, 10)) {
+      const cached = localStorage.getItem(CIQUAL_CACHE_KEY);
+      if (cached) return JSON.parse(cached);
+    }
+  } catch (e) {
+    console.warn('Failed to read Ciqual cache:', e);
+  }
+  return null;
+}
+
+// Helper: save Ciqual data to localStorage cache
+function setCachedCiqualData(data) {
+  try {
+    localStorage.setItem(CIQUAL_CACHE_KEY, JSON.stringify(data));
+    localStorage.setItem(CIQUAL_CACHE_EXPIRY_KEY, String(Date.now() + CIQUAL_CACHE_TTL));
+  } catch (e) {
+    console.warn('Failed to cache Ciqual data:', e);
+  }
+}
+
+// Helper: update preload status UI
+function updatePreloadStatus(message, isError = false, showRetryButton = false) {
+  const statusEl = document.getElementById('preloadStatus');
+  if (!statusEl) return;
+  statusEl.innerHTML = '';
+  statusEl.classList.remove('ready', 'hidden', 'error');
+  const msgSpan = document.createElement('span');
+  msgSpan.textContent = message;
+  statusEl.appendChild(msgSpan);
+  if (isError) statusEl.classList.add('error');
+  if (showRetryButton) {
+    const retryBtn = document.createElement('button');
+    retryBtn.textContent = 'Reessayer';
+    retryBtn.className = 'retry-btn';
+    retryBtn.style.marginLeft = '8px';
+    retryBtn.addEventListener('click', () => {
+      ciqualLoadPromise = null;
+      ciqualAlim = null;
+      preloadCiqualData();
+    });
+    statusEl.appendChild(retryBtn);
+  }
+}
+
+// Main function: load Ciqual index with retry logic
+async function loadCiqualIndex(options = {}) {
+  const { silent = false, forceRefresh = false } = options;
+  if (ciqualAlim && !forceRefresh) return ciqualAlim;
+  if (ciqualLoadPromise && !forceRefresh) return ciqualLoadPromise;
+
+  ciqualLoadPromise = (async () => {
+    // Try localStorage cache first
+    if (!forceRefresh) {
+      const cached = getCachedCiqualData();
+      if (cached) {
+        ciqualAlim = Object.keys(cached).map(k => ({ code: k, name: cached[k].name || '' }));
+        window.__ciqual_short = cached;
+        if (!silent) {
+          updatePreloadStatus('Donnees pretes (cache)');
+          const s = document.getElementById('preloadStatus');
+          if (s) { s.classList.add('ready'); setTimeout(() => s.classList.add('hidden'), 2500); }
+        }
+        return ciqualAlim;
+      }
+    }
+
+    // Check if offline
+    if (!isOnline()) {
+      const err = 'Mode hors ligne - donnees non disponibles';
+      if (!silent) updatePreloadStatus(err, true, true);
+      throw new Error(err);
+    }
+
+    let lastError = null;
+
+    // Retry loop with exponential backoff
+    for (let attempt = 1; attempt <= CIQUAL_MAX_RETRIES; attempt++) {
+      try {
+        if (!silent) {
+          if (attempt === 1) updatePreloadStatus('Prechargement...');
+          else updatePreloadStatus(`Tentative ${attempt}/${CIQUAL_MAX_RETRIES}...`);
+        }
+
+        const resp = await fetch('./ciqual/ciqual_index.json');
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+
+        const short = await resp.json();
+        if (!short || typeof short !== 'object' || Object.keys(short).length === 0) {
+          throw new Error('Donnees invalides');
+        }
+
+        // Success - cache the data
+        setCachedCiqualData(short);
+        ciqualAlim = Object.keys(short).map(k => ({ code: k, name: short[k].name || '' }));
+        window.__ciqual_short = short;
+
+        if (!silent) {
+          updatePreloadStatus('Donnees pretes');
+          const s = document.getElementById('preloadStatus');
+          if (s) { s.classList.add('ready'); setTimeout(() => s.classList.add('hidden'), 2500); }
+        }
+        return ciqualAlim;
+
+      } catch (err) {
+        lastError = err;
+        console.warn(`Ciqual load attempt ${attempt} failed:`, err.message);
+        if (!isOnline()) break;
+
+        // Wait before retrying (exponential backoff)
+        if (attempt < CIQUAL_MAX_RETRIES) {
+          const waitMs = CIQUAL_INITIAL_RETRY_DELAY * Math.pow(2, attempt - 1);
+          if (!silent) updatePreloadStatus(`Echec, nouvelle tentative dans ${waitMs / 1000}s...`);
+          await delayMs(waitMs);
+        }
+      }
+    }
+
+    // All retries failed
+    let errorMessage;
+    if (!isOnline()) errorMessage = 'Mode hors ligne - verifiez votre connexion';
+    else if (lastError && lastError.message.includes('HTTP')) errorMessage = `Erreur serveur: ${lastError.message}`;
+    else errorMessage = 'Echec du chargement des donnees';
+
+    if (!silent) updatePreloadStatus(errorMessage, true, true);
+    ciqualLoadPromise = null;
+    return null;
+  })();
+
+  return ciqualLoadPromise;
+}
+
+// Separate function for preloading
+async function preloadCiqualData() {
+  try {
+    await loadCiqualIndex({ silent: false });
+  } catch (e) {
+    console.error('Preload failed:', e);
+  }
+}
+
+// Listen for online/offline events
+if (typeof window !== 'undefined') {
+  window.addEventListener('online', () => {
+    if (!ciqualAlim && !ciqualLoadPromise) {
+      showNotification('Connexion retablie - rechargement des donnees...');
+      preloadCiqualData();
+    }
+  });
+  window.addEventListener('offline', () => {
+    showNotification('Mode hors ligne', true);
+  });
 }
 
 // ========== CALCULS MACROS ==========
@@ -300,6 +487,26 @@ function getTodayMacros() {
   }
 
   return macros;
+}
+
+function getTodayCaloriesByCategory() {
+  const today = getTodayDate();
+  const todayMeals = meals.filter(m => m.date === today);
+  const byCategory = {
+    breakfast: 0,
+    lunch: 0,
+    dinner: 0,
+    snack: 0
+  };
+
+  for (const meal of todayMeals) {
+    const cat = meal.category || 'snack';
+    if (byCategory[cat] !== undefined) {
+      byCategory[cat] += meal.calories || 0;
+    }
+  }
+
+  return byCategory;
 }
 
 // ========== GRAPHIQUES ==========
@@ -364,6 +571,105 @@ function renderChart(canvasId, days = 7) {
   ctx.fillText(Math.round(maxVal).toString(), 35, 25);
 }
 
+function renderMacroChart(canvasId, days = 7) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+
+  const ctx = canvas.getContext('2d');
+  const width = canvas.width = canvas.offsetWidth;
+  const height = canvas.height = 200;
+
+  const dates = getDateRange(days);
+
+  // Calculate macros for each day
+  const data = dates.map(date => {
+    const dayMeals = meals.filter(m => m.date === date);
+    const macros = { protein: 0, fat: 0, carbs: 0 };
+    for (const meal of dayMeals) {
+      if (meal.nutrients) {
+        const grams = meal.grams || 100;
+        macros.protein += ((meal.nutrients['25000'] || 0) * grams) / 100;
+        macros.fat += ((meal.nutrients['40000'] || 0) * grams) / 100;
+        macros.carbs += ((meal.nutrients['31000'] || 0) * grams) / 100;
+      }
+    }
+    return macros;
+  });
+
+  // Find max value for scaling
+  const allValues = data.flatMap(d => [d.protein, d.fat, d.carbs]);
+  const maxVal = Math.max(...allValues, 50) * 1.1;
+
+  const groupWidth = (width - 60) / days;
+  const barWidth = (groupWidth - 12) / 3; // 3 bars per group
+  const chartHeight = height - 40;
+
+  ctx.clearRect(0, 0, width, height);
+
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark' ||
+    (!document.documentElement.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+  // Get colors from CSS variables
+  const style = getComputedStyle(document.documentElement);
+  const proteinColor = style.getPropertyValue('--protein-color').trim() || '#e91e63';
+  const fatColor = style.getPropertyValue('--fat-color').trim() || '#ff9800';
+  const carbsColor = style.getPropertyValue('--carbs-color').trim() || '#2196f3';
+
+  // Draw bars for each day
+  data.forEach((macros, i) => {
+    const groupX = 50 + i * groupWidth;
+
+    // Protein bar
+    const proteinHeight = (macros.protein / maxVal) * chartHeight;
+    ctx.fillStyle = proteinColor;
+    ctx.fillRect(groupX, height - 20 - proteinHeight, barWidth, proteinHeight);
+
+    // Fat bar
+    const fatHeight = (macros.fat / maxVal) * chartHeight;
+    ctx.fillStyle = fatColor;
+    ctx.fillRect(groupX + barWidth + 2, height - 20 - fatHeight, barWidth, fatHeight);
+
+    // Carbs bar
+    const carbsHeight = (macros.carbs / maxVal) * chartHeight;
+    ctx.fillStyle = carbsColor;
+    ctx.fillRect(groupX + (barWidth + 2) * 2, height - 20 - carbsHeight, barWidth, carbsHeight);
+
+    // Day label
+    ctx.fillStyle = isDark ? '#9aa0a6' : '#666';
+    ctx.font = '10px sans-serif';
+    ctx.textAlign = 'center';
+    const dayLabel = new Date(dates[i] + 'T00:00:00').toLocaleDateString('fr-FR', { weekday: 'short' });
+    ctx.fillText(dayLabel, groupX + groupWidth / 2 - 6, height - 5);
+  });
+
+  // Y axis
+  ctx.fillStyle = isDark ? '#9aa0a6' : '#666';
+  ctx.textAlign = 'right';
+  ctx.fillText('0', 35, height - 20);
+  ctx.fillText(Math.round(maxVal) + 'g', 35, 25);
+
+  // Legend
+  const legendY = 12;
+  const legendX = width - 150;
+  ctx.font = '10px sans-serif';
+  ctx.textAlign = 'left';
+
+  ctx.fillStyle = proteinColor;
+  ctx.fillRect(legendX, legendY - 8, 10, 10);
+  ctx.fillStyle = isDark ? '#9aa0a6' : '#666';
+  ctx.fillText('P', legendX + 14, legendY);
+
+  ctx.fillStyle = fatColor;
+  ctx.fillRect(legendX + 30, legendY - 8, 10, 10);
+  ctx.fillStyle = isDark ? '#9aa0a6' : '#666';
+  ctx.fillText('L', legendX + 44, legendY);
+
+  ctx.fillStyle = carbsColor;
+  ctx.fillRect(legendX + 60, legendY - 8, 10, 10);
+  ctx.fillStyle = isDark ? '#9aa0a6' : '#666';
+  ctx.fillText('G', legendX + 74, legendY);
+}
+
 // ========== AFFICHAGE ==========
 function render() {
   const today = getTodayDate();
@@ -407,6 +713,9 @@ function render() {
   const clearBtn = document.getElementById('clearBtn');
   if (clearBtn) clearBtn.style.display = meals.length > 0 ? 'inline-block' : 'none';
 
+  // Per-category calorie progress (Add tab)
+  renderCategoryProgress();
+
   // Today's meals list (Add tab)
   const todayListContainer = document.getElementById('todayMealsList');
   if (todayListContainer) {
@@ -418,48 +727,22 @@ function render() {
     }
   }
 
-  // All meals list (collapsible)
-  const listContainer = document.getElementById('mealsList');
-  const sorted = [...meals].sort((a, b) => new Date(b.date) - new Date(a.date));
+  // All meals list (collapsible) - with search and category filter
+  renderHistoryList();
 
-  if (listContainer) {
-    if (sorted.length === 0) {
-      listContainer.innerHTML = '<div class="empty-state"><p>Aucun repas enregistré</p></div>';
-    } else {
-      const grouped = {};
-      sorted.forEach(meal => {
-        if (!grouped[meal.date]) grouped[meal.date] = [];
-        grouped[meal.date].push(meal);
-      });
-
-      listContainer.innerHTML = Object.entries(grouped).map(([date, dateMeals]) => {
-        const dayCalories = dateMeals.reduce((sum, m) => sum + m.calories, 0);
-        return `
-          <div class="day-group">
-            <div class="day-header">
-              <span class="day-date">${formatDate(date)}</span>
-              <span class="day-total">${dayCalories} kcal</span>
-            </div>
-            ${dateMeals.map(meal => renderMealItem(meal)).join('')}
-          </div>
-        `;
-      }).join('');
-
-      populateNutrients(sorted);
-    }
-  }
-
-  // Render chart (only if visible)
+  // Render charts (only if visible)
   if (document.getElementById('tab-stats')?.classList.contains('active')) {
     renderChart('historyChart', 7);
+    renderMacroChart('macroChart', 7);
   }
 }
 
 function renderMealItem(meal) {
   const cat = MEAL_CATEGORIES.find(c => c.id === meal.category) || { icon: '🍽️', label: '' };
   return `
-    <div class="meal-item" data-id="${meal.id}">
-      <div class="meal-info">
+    <div class="meal-item-wrapper" data-id="${meal.id}">
+      <div class="meal-item-content">
+        <div class="meal-info">
         <h3><span class="meal-cat-icon">${cat.icon}</span> ${escapeHtml(meal.name)}</h3>
         <div class="meal-details">
           <span class="meal-calories">${meal.calories} kcal</span>
@@ -468,11 +751,14 @@ function renderMealItem(meal) {
         </div>
         ${meal.nutrients ? `<div style="margin-top:8px;"><button class="btn-nutrients" onclick="toggleNutrients(${meal.id})">Nutriments</button></div>
         <div id="nutrients-${meal.id}" class="nutrient-list" style="display:none;"></div>` : ''}
+        </div>
+        <div class="meal-actions">
+          <button class="btn-duplicate" onclick="duplicateMeal(${meal.id})" title="Dupliquer">📋</button>
+          <button class="btn-edit" onclick="openEditModal(${meal.id})" title="Modifier">✏️</button>
+          <button class="btn-delete" onclick="deleteMeal(${meal.id})" title="Supprimer">🗑️</button>
+        </div>
       </div>
-      <div class="meal-actions">
-        <button class="btn-edit" onclick="openEditModal(${meal.id})" title="Modifier">✏️</button>
-        <button class="btn-delete" onclick="deleteMeal(${meal.id})" title="Supprimer">🗑️</button>
-      </div>
+      <button class="swipe-delete-btn" onclick="deleteMeal(${meal.id})" aria-label="Supprimer">Supprimer</button>
     </div>
   `;
 }
@@ -508,10 +794,96 @@ function renderMacroProgress(barId, labelId, current, goal, name, colorClass) {
   label.textContent = `${name}: ${Math.round(current)}g / ${goal}g`;
 }
 
+function renderCategoryProgress() {
+  const container = document.getElementById('categoryProgressContainer');
+  if (!container) return;
+
+  const byCategory = getTodayCaloriesByCategory();
+
+  const html = MEAL_CATEGORIES.map(cat => {
+    const current = byCategory[cat.id] || 0;
+    const goal = mealCategoryGoals[cat.id] || DEFAULT_CATEGORY_GOALS[cat.id];
+    const pct = Math.min(100, Math.round((current / goal) * 100));
+    const isOver = current > goal;
+
+    return `
+      <div class="category-progress-item">
+        <div class="category-progress-header">
+          <span class="category-icon">${cat.icon}</span>
+          <span class="category-label">${cat.label}</span>
+          <span class="category-calories ${isOver ? 'over' : ''}">${Math.round(current)}/${goal} kcal</span>
+        </div>
+        <div class="category-progress-bar">
+          <div class="category-progress-fill ${isOver ? 'over' : ''}" style="width: ${pct}%"></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  container.innerHTML = html;
+}
+
 function toggleNutrients(id) {
   const el = document.getElementById(`nutrients-${id}`);
   if (!el) return;
   el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+// ========== HISTORY LIST WITH FILTERS ==========
+function renderHistoryList() {
+  const listContainer = document.getElementById('mealsList');
+  if (!listContainer) return;
+
+  // Apply filters
+  let filtered = [...meals];
+
+  // Category filter
+  if (historyCategoryFilter) {
+    filtered = filtered.filter(m => m.category === historyCategoryFilter);
+  }
+
+  // Search filter (accent-insensitive using normalizeAccents)
+  if (historySearchQuery) {
+    const normalizedQuery = normalizeAccents(historySearchQuery.toLowerCase());
+    filtered = filtered.filter(m => {
+      const normalizedName = normalizeAccents((m.name || '').toLowerCase());
+      return normalizedName.includes(normalizedQuery);
+    });
+  }
+
+  // Sort by date descending
+  const sorted = filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  if (sorted.length === 0) {
+    if (meals.length === 0) {
+      listContainer.innerHTML = '<div class="empty-state"><p>Aucun repas enregistré</p></div>';
+    } else {
+      listContainer.innerHTML = '<div class="empty-state"><p>Aucun résultat</p></div>';
+    }
+    return;
+  }
+
+  // Group by date
+  const grouped = {};
+  sorted.forEach(meal => {
+    if (!grouped[meal.date]) grouped[meal.date] = [];
+    grouped[meal.date].push(meal);
+  });
+
+  listContainer.innerHTML = Object.entries(grouped).map(([date, dateMeals]) => {
+    const dayCalories = dateMeals.reduce((sum, m) => sum + m.calories, 0);
+    return `
+      <div class="day-group">
+        <div class="day-header">
+          <span class="day-date">${formatDate(date)}</span>
+          <span class="day-total">${dayCalories} kcal</span>
+        </div>
+        ${dateMeals.map(meal => renderMealItem(meal)).join('')}
+      </div>
+    `;
+  }).join('');
+
+  populateNutrients(sorted);
 }
 
 // ========== CRUD REPAS ==========
@@ -523,6 +895,23 @@ function deleteMeal(id) {
     saveMeals();
     showNotification('Repas supprimé');
   }
+}
+
+function duplicateMeal(id) {
+  const meal = meals.find(m => m.id === id);
+  if (!meal) return;
+
+  const newMeal = {
+    ...meal,
+    id: Date.now(),
+    date: getTodayDate(),
+    timestamp: new Date().toISOString()
+  };
+
+  meals.push(newMeal);
+  addToPendingSync({ type: 'add', meal: newMeal });
+  saveMeals();
+  showNotification('Repas dupliqué');
 }
 
 function openEditModal(id) {
@@ -568,7 +957,7 @@ function saveEditedMeal() {
 
 // ========== EXPORT/IMPORT ==========
 function exportData() {
-  const data = { meals, dailyGoal, macroGoals, favorites, recipes, exportedAt: new Date().toISOString() };
+  const data = { meals, dailyGoal, macroGoals, mealCategoryGoals, favorites, recipes, exportedAt: new Date().toISOString() };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -587,6 +976,7 @@ function importData(file) {
       if (data.meals) meals = data.meals;
       if (data.dailyGoal) { dailyGoal = data.dailyGoal; localStorage.setItem(GOAL_KEY, dailyGoal); }
       if (data.macroGoals) { macroGoals = data.macroGoals; saveMacroGoals(); }
+      if (data.mealCategoryGoals) { mealCategoryGoals = data.mealCategoryGoals; saveMealCategoryGoals(); }
       if (data.favorites) { favorites = data.favorites; saveFavorites(); }
       if (data.recipes) { recipes = data.recipes; saveRecipes(); }
       saveMeals();
@@ -611,15 +1001,39 @@ function setMacroGoal(macro, value) {
 }
 
 // ========== RECETTES UI ==========
+// Track which recipe is being edited (null = creating new)
+let editingRecipeId = null;
+
 function openRecipeModal() {
+  editingRecipeId = null;
   document.getElementById('recipeModal').classList.add('open');
+  document.getElementById('recipeModalTitle').textContent = 'Nouvelle recette';
+  document.getElementById('recipeSaveBtn').textContent = 'Creer la recette';
   document.getElementById('recipeName').value = '';
   document.getElementById('recipeIngredients').innerHTML = '';
   addRecipeIngredient();
 }
 
+function openEditRecipeModal(recipeId) {
+  const recipe = recipes.find(r => r.id === recipeId);
+  if (!recipe) return;
+
+  editingRecipeId = recipeId;
+  document.getElementById('recipeModal').classList.add('open');
+  document.getElementById('recipeModalTitle').textContent = 'Modifier la recette';
+  document.getElementById('recipeSaveBtn').textContent = 'Enregistrer';
+  document.getElementById('recipeName').value = recipe.name;
+  document.getElementById('recipeIngredients').innerHTML = '';
+
+  // Add existing ingredients with their data
+  for (const ing of recipe.ingredients) {
+    addRecipeIngredientWithData(ing.code, ing.name, ing.grams);
+  }
+}
+
 function closeRecipeModal() {
   document.getElementById('recipeModal').classList.remove('open');
+  editingRecipeId = null;
 }
 
 function addRecipeIngredient() {
@@ -673,6 +1087,58 @@ function addRecipeIngredient() {
   searchInput.addEventListener('blur', () => setTimeout(() => suggBox.innerHTML = '', 200));
 }
 
+// Add ingredient with pre-populated data (for editing recipes)
+function addRecipeIngredientWithData(code, name, grams) {
+  const container = document.getElementById('recipeIngredients');
+  const idx = container.children.length;
+  const div = document.createElement('div');
+  div.className = 'recipe-ingredient';
+  div.innerHTML = `
+    <div class="recipe-ing-search-wrap">
+      <input type="text" class="recipe-ing-search" placeholder="Rechercher un aliment..." data-idx="${idx}" autocomplete="off" value="${escapeHtml(name)}">
+      <div class="recipe-ing-suggestions"></div>
+    </div>
+    <input type="number" class="recipe-ing-grams" value="${grams}" min="1" placeholder="g">
+    <input type="hidden" class="recipe-ing-code" value="${code}">
+    <input type="hidden" class="recipe-ing-name" value="${escapeHtml(name)}">
+    <button type="button" onclick="this.parentElement.remove()">✕</button>
+  `;
+  container.appendChild(div);
+
+  // Add search functionality (same as addRecipeIngredient)
+  const searchInput = div.querySelector('.recipe-ing-search');
+  const suggBox = div.querySelector('.recipe-ing-suggestions');
+  const codeInput = div.querySelector('.recipe-ing-code');
+  const nameInput = div.querySelector('.recipe-ing-name');
+
+  const doIngSearch = debounce(async (q) => {
+    if (!q || q.length < 2) { suggBox.innerHTML = ''; return; }
+    const list = await loadCiqualIndex();
+    if (!list) return;
+
+    const scored = list.map(i => ({ ...i, score: fuzzyMatch(i.name, q) }))
+      .filter(i => i.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 6);
+
+    suggBox.innerHTML = scored.map(r =>
+      `<button type="button" class="recipe-sugg-item" data-code="${r.code}" data-name="${escapeHtml(r.name)}">${escapeHtml(r.name)}</button>`
+    ).join('');
+
+    suggBox.querySelectorAll('.recipe-sugg-item').forEach(btn => {
+      btn.addEventListener('click', () => {
+        searchInput.value = btn.dataset.name;
+        codeInput.value = btn.dataset.code;
+        nameInput.value = btn.dataset.name;
+        suggBox.innerHTML = '';
+      });
+    });
+  }, 200);
+
+  searchInput.addEventListener('input', (e) => doIngSearch(e.target.value.trim().toLowerCase()));
+  searchInput.addEventListener('blur', () => setTimeout(() => suggBox.innerHTML = '', 200));
+}
+
 function saveRecipe() {
   const name = document.getElementById('recipeName').value.trim();
   if (!name) { showNotification('Nom requis', true); return; }
@@ -685,12 +1151,27 @@ function saveRecipe() {
     if (code) ingredients.push({ code, name: ingName, grams });
   });
 
-  if (ingredients.length === 0) { showNotification('Ajoutez des ingrédients', true); return; }
+  if (ingredients.length === 0) { showNotification('Ajoutez des ingredients', true); return; }
 
-  createRecipe(name, ingredients);
-  closeRecipeModal();
-  showNotification('Recette créée');
-  renderRecipesList();
+  if (editingRecipeId) {
+    // Update existing recipe
+    const recipe = recipes.find(r => r.id === editingRecipeId);
+    if (recipe) {
+      recipe.name = name;
+      recipe.ingredients = ingredients;
+      recipe.updatedAt = new Date().toISOString();
+      saveRecipes();
+      closeRecipeModal();
+      showNotification('Recette modifiee');
+      renderRecipesList();
+    }
+  } else {
+    // Create new recipe
+    createRecipe(name, ingredients);
+    closeRecipeModal();
+    showNotification('Recette creee');
+    renderRecipesList();
+  }
 }
 
 function renderRecipesList() {
@@ -711,8 +1192,9 @@ function renderRecipesList() {
           <span class="recipe-stats">${Math.round(nutrients.calories)} kcal • ${r.ingredients.length} ingrédients</span>
         </div>
         <div class="recipe-actions">
-          <button onclick="addRecipeAsMeal(${r.id})">➕</button>
-          <button onclick="deleteRecipeConfirm(${r.id})">🗑️</button>
+          <button onclick="addRecipeAsMeal(${r.id})" title="Ajouter comme repas">➕</button>
+          <button onclick="openEditRecipeModal(${r.id})" title="Modifier">✏️</button>
+          <button onclick="deleteRecipeConfirm(${r.id})" title="Supprimer">🗑️</button>
         </div>
       </div>
     `;
@@ -776,9 +1258,10 @@ document.addEventListener('DOMContentLoaded', () => {
       document.querySelectorAll('.tab-content').forEach(c => {
         c.classList.toggle('active', c.id === `tab-${tabId}`);
       });
-      // Render chart when switching to stats tab
+      // Render charts when switching to stats tab
       if (tabId === 'stats') {
         renderChart('historyChart', 7);
+        renderMacroChart('macroChart', 7);
       }
     });
   });
@@ -804,6 +1287,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (input) {
       input.value = macroGoals[macro];
       input.addEventListener('change', (e) => setMacroGoal(macro, e.target.value));
+    }
+  });
+
+  // Meal category calorie goal inputs
+  ['breakfast', 'lunch', 'dinner', 'snack'].forEach(category => {
+    const input = document.getElementById(`${category}GoalInput`);
+    if (input) {
+      input.value = mealCategoryGoals[category];
+      input.addEventListener('change', (e) => setMealCategoryGoal(category, e.target.value));
     }
   });
 
@@ -855,21 +1347,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Preload Ciqual
-  (async () => {
-    const statusEl = document.getElementById('preloadStatus');
-    try {
-      if (statusEl) statusEl.textContent = 'Préchargement…';
-      const idx = await loadCiqualIndex();
-      if (idx && idx.length && statusEl) {
-        statusEl.textContent = 'Données prêtes';
-        statusEl.classList.add('ready');
-        setTimeout(() => statusEl.classList.add('hidden'), 2500);
-      }
-    } catch (e) {
-      if (statusEl) { statusEl.textContent = 'Échec'; statusEl.classList.add('ready'); }
-    }
-  })();
+  // Preload Ciqual data with robust error handling
+  preloadCiqualData();
 
   // Search UI
   const foodInput = document.getElementById('foodSearch');
@@ -1067,9 +1546,195 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // History filters
+  const historySearchInput = document.getElementById('historySearch');
+  const historyCategorySelect = document.getElementById('historyCategoryFilter');
+
+  if (historySearchInput) {
+    historySearchInput.addEventListener('input', debounce((e) => {
+      historySearchQuery = e.target.value.trim();
+      renderHistoryList();
+    }, 200));
+  }
+
+  if (historyCategorySelect) {
+    historyCategorySelect.addEventListener('change', (e) => {
+      historyCategoryFilter = e.target.value;
+      renderHistoryList();
+    });
+  }
+
   // Render recipes list
   renderRecipesList();
 
   // Initial render
   render();
+
+  // Initialize swipe-to-delete
+  initSwipeToDelete();
 });
+
+// ========== SWIPE TO DELETE ==========
+function initSwipeToDelete() {
+  document.addEventListener('touchstart', handleSwipeStart, { passive: true });
+  document.addEventListener('touchmove', handleSwipeMove, { passive: false });
+  document.addEventListener('touchend', handleSwipeEnd, { passive: true });
+
+  // Mouse drag support for desktop testing
+  document.addEventListener('mousedown', handleMouseStart);
+  document.addEventListener('mousemove', handleMouseMove);
+  document.addEventListener('mouseup', handleMouseEnd);
+}
+
+let swipeState = {
+  element: null,
+  startX: 0,
+  startY: 0,
+  currentX: 0,
+  isDragging: false,
+  isMouseDrag: false
+};
+
+const SWIPE_THRESHOLD = 50;
+const DELETE_REVEAL_WIDTH = 90;
+
+function getSwipeableElement(target) {
+  return target.closest('.meal-item-wrapper');
+}
+
+function handleSwipeStart(e) {
+  const wrapper = getSwipeableElement(e.target);
+  if (!wrapper || e.target.closest('button')) return;
+
+  // Reset any other swiped items
+  document.querySelectorAll('.meal-item-wrapper.swiped').forEach(w => {
+    if (w !== wrapper) resetSwipe(w);
+  });
+
+  swipeState.element = wrapper;
+  swipeState.startX = e.touches[0].clientX;
+  swipeState.startY = e.touches[0].clientY;
+  swipeState.currentX = 0;
+  swipeState.isDragging = false;
+}
+
+function handleSwipeMove(e) {
+  if (!swipeState.element) return;
+
+  const touch = e.touches[0];
+  const deltaX = touch.clientX - swipeState.startX;
+  const deltaY = touch.clientY - swipeState.startY;
+
+  // Allow vertical scrolling if moving more vertically
+  if (!swipeState.isDragging && Math.abs(deltaY) > Math.abs(deltaX)) {
+    swipeState.element = null;
+    return;
+  }
+
+  // Only allow left swipe (negative deltaX)
+  if (deltaX > 0) {
+    resetSwipe(swipeState.element);
+    return;
+  }
+
+  swipeState.isDragging = true;
+  e.preventDefault();
+
+  const content = swipeState.element.querySelector('.meal-item-content');
+  if (!content) return;
+
+  const translateX = Math.max(-DELETE_REVEAL_WIDTH, deltaX);
+  swipeState.currentX = translateX;
+  content.style.transform = `translateX(${translateX}px)`;
+  content.style.transition = 'none';
+}
+
+function handleSwipeEnd() {
+  if (!swipeState.element) return;
+
+  const content = swipeState.element.querySelector('.meal-item-content');
+  if (!content) {
+    swipeState.element = null;
+    return;
+  }
+
+  content.style.transition = 'transform 0.2s ease-out';
+
+  if (Math.abs(swipeState.currentX) >= SWIPE_THRESHOLD) {
+    content.style.transform = `translateX(-${DELETE_REVEAL_WIDTH}px)`;
+    swipeState.element.classList.add('swiped');
+  } else {
+    resetSwipe(swipeState.element);
+  }
+
+  swipeState.element = null;
+  swipeState.isDragging = false;
+}
+
+function resetSwipe(wrapper) {
+  if (!wrapper) return;
+  const content = wrapper.querySelector('.meal-item-content');
+  if (content) {
+    content.style.transition = 'transform 0.2s ease-out';
+    content.style.transform = 'translateX(0)';
+  }
+  wrapper.classList.remove('swiped');
+}
+
+// Reset swiped items when clicking elsewhere
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.meal-item-wrapper')) {
+    document.querySelectorAll('.meal-item-wrapper.swiped').forEach(resetSwipe);
+  }
+});
+
+// Mouse drag support for desktop
+function handleMouseStart(e) {
+  const wrapper = getSwipeableElement(e.target);
+  if (!wrapper || e.target.closest('button')) return;
+
+  document.querySelectorAll('.meal-item-wrapper.swiped').forEach(w => {
+    if (w !== wrapper) resetSwipe(w);
+  });
+
+  swipeState.element = wrapper;
+  swipeState.startX = e.clientX;
+  swipeState.isMouseDrag = true;
+  swipeState.currentX = 0;
+}
+
+function handleMouseMove(e) {
+  if (!swipeState.element || !swipeState.isMouseDrag) return;
+
+  const deltaX = e.clientX - swipeState.startX;
+  if (deltaX > 0) {
+    resetSwipe(swipeState.element);
+    return;
+  }
+
+  const content = swipeState.element.querySelector('.meal-item-content');
+  if (!content) return;
+
+  const translateX = Math.max(-DELETE_REVEAL_WIDTH, deltaX);
+  swipeState.currentX = translateX;
+  content.style.transform = `translateX(${translateX}px)`;
+  content.style.transition = 'none';
+}
+
+function handleMouseEnd() {
+  if (!swipeState.element || !swipeState.isMouseDrag) return;
+
+  const content = swipeState.element.querySelector('.meal-item-content');
+  if (content) {
+    content.style.transition = 'transform 0.2s ease-out';
+    if (Math.abs(swipeState.currentX) >= SWIPE_THRESHOLD) {
+      content.style.transform = `translateX(-${DELETE_REVEAL_WIDTH}px)`;
+      swipeState.element.classList.add('swiped');
+    } else {
+      resetSwipe(swipeState.element);
+    }
+  }
+
+  swipeState.element = null;
+  swipeState.isMouseDrag = false;
+}

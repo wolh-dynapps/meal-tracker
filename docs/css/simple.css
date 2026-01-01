@@ -219,10 +219,25 @@ body {
 
 .tab-content {
   display: none;
+  opacity: 0;
+  transform: translateY(8px);
 }
 
 .tab-content.active {
   display: block;
+  animation: tabFadeIn 250ms ease-out forwards;
+}
+
+/* Tab fade-in animation */
+@keyframes tabFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ========== CONTENT ========== */
@@ -391,6 +406,39 @@ body {
 
 .all-meals-details .meals-list {
   padding: 10px;
+}
+
+/* History filters */
+.history-filters {
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+}
+
+.history-filters input[type="search"] {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 12px;
+  font-size: 14px;
+}
+
+.history-filters .filter-select {
+  width: auto;
+  min-width: 120px;
+  padding: 10px 12px;
+  font-size: 14px;
+}
+
+@media (max-width: 480px) {
+  .history-filters {
+    flex-direction: column;
+  }
+
+  .history-filters .filter-select {
+    width: 100%;
+  }
 }
 
 /* ========== BROWSE LINK ========== */
@@ -1203,6 +1251,47 @@ button:active { transform: none; }
   background: var(--bg-tertiary);
 }
 
+.recipe-sugg-item:focus {
+  outline: 3px solid #ffb703;
+  outline-offset: -2px;
+  background: var(--bg-tertiary);
+}
+
+/* ========== MODAL FOCUS STYLES ========== */
+.modal-content button:focus-visible,
+.modal-content input:focus-visible,
+.modal-content select:focus-visible,
+.modal-content textarea:focus-visible {
+  outline: 3px solid #ffb703;
+  outline-offset: 2px;
+}
+
+.modal-content .btn-secondary:focus-visible {
+  outline: 3px solid #ffb703;
+  outline-offset: 2px;
+  background: var(--bg-tertiary);
+}
+
+.modal-actions button:focus-visible {
+  outline: 3px solid #ffb703;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 6px rgba(255, 183, 3, 0.3);
+}
+
+/* Focus indicator for modal close/cancel buttons */
+.modal-content .btn-secondary:focus-visible,
+.modal-content button[type="button"]:focus-visible {
+  outline: 3px solid #ffb703;
+  outline-offset: 2px;
+}
+
+/* Recipe ingredient remove button focus */
+.recipe-ingredient button:focus-visible {
+  outline: 3px solid #ffb703;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(255, 183, 3, 0.3);
+}
+
 /* ========== PRELOAD BADGE ========== */
 .preload-badge {
   display: inline-block;
@@ -1222,6 +1311,36 @@ button:active { transform: none; }
 
 .preload-badge.hidden {
   display: none;
+}
+
+.preload-badge.error {
+  background: rgba(234, 67, 53, 0.12);
+  color: #c5221f;
+}
+
+[data-theme="dark"] .preload-badge.error {
+  background: rgba(234, 67, 53, 0.2);
+  color: #f28b82;
+}
+
+.preload-badge .retry-btn {
+  background: var(--btn-primary-bg, #4285f4);
+  color: white;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.preload-badge .retry-btn:hover {
+  background: var(--btn-primary-hover, #3367d6);
+}
+
+.preload-badge .retry-btn:active {
+  transform: scale(0.98);
 }
 
 /* ========== NOTIFICATIONS ========== */
@@ -1383,5 +1502,207 @@ button:active { transform: none; }
   .quick-option input[type="date"] {
     -webkit-appearance: none;
     appearance: none;
+  }
+}
+
+/* ========== SWIPE TO DELETE ========== */
+.meal-item-wrapper {
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid var(--border);
+}
+
+.meal-item-wrapper:last-child {
+  border-bottom: none;
+}
+
+.meal-item-content {
+  background: var(--bg-primary);
+  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  transition: transform 0.2s ease-out;
+  position: relative;
+  z-index: 2;
+}
+
+.meal-item-content:hover {
+  background: var(--bg-tertiary);
+}
+
+.swipe-delete-btn {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 90px;
+  background: var(--danger);
+  color: white;
+  border: none;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+  padding: 0;
+  border-radius: 0;
+}
+
+.swipe-delete-btn:hover {
+  background: #d33425;
+}
+
+.meal-item-wrapper.swiped .meal-item-content {
+  transform: translateX(-90px);
+}
+
+/* Responsive adjustments for swipe */
+@media (max-width: 600px) {
+  .meal-item-content {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .meal-item-wrapper .meal-actions {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .meal-item-wrapper .meal-actions button {
+    flex: 1;
+  }
+}
+
+/* ========== CATEGORY PROGRESS (Add tab) ========== */
+.category-progress-section {
+  margin-bottom: 20px;
+  padding: 15px;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+}
+
+.category-progress-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.category-progress-item {
+  background: var(--bg-primary);
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+.category-progress-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.category-icon {
+  font-size: 14px;
+}
+
+.category-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  flex: 1;
+}
+
+.category-calories {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.category-calories.over {
+  color: var(--danger);
+}
+
+.category-progress-bar {
+  height: 6px;
+  background: var(--bg-tertiary);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.category-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--success), #2e7d32);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.category-progress-fill.over {
+  background: linear-gradient(90deg, var(--danger), #c62828);
+}
+
+/* ========== CATEGORY GOALS (Stats tab) ========== */
+.category-goals-section {
+  margin-bottom: 25px;
+  padding: 15px;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+}
+
+.category-goals-inputs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.category-goal-group {
+  text-align: center;
+}
+
+.category-goal-group label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.category-goal-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.category-goal-wrap input {
+  width: 55px;
+  padding: 6px;
+  text-align: center;
+  font-size: 13px;
+}
+
+.category-goal-wrap span {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+/* Responsive for category goals/progress */
+@media (max-width: 600px) {
+  .category-progress-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .category-goals-inputs {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 420px) {
+  .category-progress-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .category-goals-inputs {
+    grid-template-columns: 1fr 1fr;
   }
 }

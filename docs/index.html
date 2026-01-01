@@ -107,6 +107,12 @@
           <div id="ariaNotifications" aria-live="polite" aria-atomic="true" class="sr-only"></div>
         </main>
 
+        <!-- Per-category calorie progress -->
+        <div class="category-progress-section">
+          <div class="section-title">Objectifs par repas</div>
+          <div id="categoryProgressContainer" class="category-progress-grid"></div>
+        </div>
+
         <!-- Today's meals -->
         <div class="meals-section">
           <div class="meals-header">
@@ -122,6 +128,16 @@
             📋 Historique complet <span class="meals-count" id="totalMeals">0</span>
             <button class="btn-clear" id="clearBtn" style="display: none;">Effacer tout</button>
           </summary>
+          <div class="history-filters">
+            <input type="search" id="historySearch" placeholder="Rechercher dans l'historique..." aria-label="Rechercher dans l'historique" autocomplete="off">
+            <select id="historyCategoryFilter" aria-label="Filtrer par categorie" class="filter-select">
+              <option value="">Tous</option>
+              <option value="breakfast">Petit-dej</option>
+              <option value="lunch">Dejeuner</option>
+              <option value="dinner">Diner</option>
+              <option value="snack">Snack</option>
+            </select>
+          </div>
           <div id="mealsList" class="meals-list"></div>
         </details>
       </div>
@@ -187,10 +203,51 @@
           </div>
         </div>
 
+        <!-- Meal category calorie goals -->
+        <div class="category-goals-section">
+          <div class="section-title">Objectifs calories par repas</div>
+          <div class="category-goals-inputs">
+            <div class="category-goal-group">
+              <label for="breakfastGoalInput">Petit-dej</label>
+              <div class="category-goal-wrap">
+                <input type="number" id="breakfastGoalInput" min="0" max="2000" step="50">
+                <span>kcal</span>
+              </div>
+            </div>
+            <div class="category-goal-group">
+              <label for="lunchGoalInput">Dejeuner</label>
+              <div class="category-goal-wrap">
+                <input type="number" id="lunchGoalInput" min="0" max="2000" step="50">
+                <span>kcal</span>
+              </div>
+            </div>
+            <div class="category-goal-group">
+              <label for="dinnerGoalInput">Diner</label>
+              <div class="category-goal-wrap">
+                <input type="number" id="dinnerGoalInput" min="0" max="2000" step="50">
+                <span>kcal</span>
+              </div>
+            </div>
+            <div class="category-goal-group">
+              <label for="snackGoalInput">Snack</label>
+              <div class="category-goal-wrap">
+                <input type="number" id="snackGoalInput" min="0" max="2000" step="50">
+                <span>kcal</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- History chart -->
         <div class="chart-section">
-          <div class="section-title">📈 Historique (7 jours)</div>
+          <div class="section-title">Calories (7 jours)</div>
           <canvas id="historyChart" width="560" height="200"></canvas>
+        </div>
+
+        <!-- Macro chart -->
+        <div class="chart-section">
+          <div class="section-title">Macros (7 jours)</div>
+          <canvas id="macroChart" width="560" height="200"></canvas>
         </div>
 
         <!-- Recipes -->
