@@ -73,10 +73,15 @@ function debounce(fn, delay) {
   };
 }
 
+// Normalize accents for search (é→e, ô→o, etc.)
+function normalizeAccents(str) {
+  return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
 // Fuzzy search - calcule un score de correspondance
 function fuzzyMatch(text, query) {
-  text = text.toLowerCase();
-  query = query.toLowerCase();
+  text = normalizeAccents(text.toLowerCase());
+  query = normalizeAccents(query.toLowerCase());
 
   // Exact match = highest score
   if (text.includes(query)) return 1000 - text.indexOf(query);
@@ -927,8 +932,16 @@ document.addEventListener('DOMContentLoaded', () => {
   function showFavoritesAndRecent() {
     const recent = getRecentFoods();
     const favs = favorites.slice(0, 5);
+    const userRecipes = recipes.slice(0, 5);
 
     let html = '';
+    if (userRecipes.length > 0) {
+      html += '<div class="suggestion-section"><strong>📖 Recettes</strong></div>';
+      html += userRecipes.map(r => {
+        const nutrients = getRecipeNutrients(r);
+        return `<button class="suggestion-item suggestion-recipe" data-recipe-id="${r.id}" data-name="${escapeHtml(r.name)}">📖 ${escapeHtml(r.name)} <small class="muted">(${Math.round(nutrients.calories)} kcal)</small></button>`;
+      }).join('');
+    }
     if (favs.length > 0) {
       html += '<div class="suggestion-section"><strong>⭐ Favoris</strong></div>';
       html += favs.map(f => `<button class="suggestion-item" data-code="${f.code}" data-name="${escapeHtml(f.name)}">⭐ ${escapeHtml(f.name)}</button>`).join('');
@@ -946,7 +959,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function attachSuggestionHandlers() {
     Array.from(sugg.querySelectorAll('.suggestion-item')).forEach(btn => {
-      btn.addEventListener('click', () => addMeal(btn.dataset.code, btn.dataset.name));
+      btn.addEventListener('click', () => {
+        if (btn.dataset.recipeId) {
+          // It's a recipe
+          addRecipeAsMeal(parseInt(btn.dataset.recipeId));
+          foodInput.value = '';
+          sugg.innerHTML = '';
+          selectedIndex = -1;
+        } else {
+          // It's a food
+          addMeal(btn.dataset.code, btn.dataset.name);
+        }
+      });
     });
   }
 
@@ -964,15 +988,35 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      // Fuzzy search with scoring
-      const scored = list.map(i => ({ ...i, score: fuzzyMatch(i.name, q) }))
+      // Fuzzy search with scoring - foods
+      const scoredFoods = list.map(i => ({ ...i, score: fuzzyMatch(i.name, q), type: 'food' }))
         .filter(i => i.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 10);
+
+      // Also search recipes
+      const scoredRecipes = recipes.map(r => ({
+        ...r,
+        code: 'recipe-' + r.id,
+        score: fuzzyMatch(r.name, q),
+        type: 'recipe'
+      }))
+        .filter(r => r.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 5);
+
+      // Combine: recipes first (with bonus score), then foods
+      const combined = [...scoredRecipes.map(r => ({ ...r, score: r.score + 500 })), ...scoredFoods]
         .sort((a, b) => b.score - a.score)
         .slice(0, 12);
 
-      sugg.innerHTML = scored.map(r =>
-        `<button class="suggestion-item" data-code="${r.code}" data-name="${escapeHtml(r.name)}">${escapeHtml(r.name)} <small class="muted">(${r.code})</small></button>`
-      ).join('');
+      sugg.innerHTML = combined.map(r => {
+        if (r.type === 'recipe') {
+          const nutrients = getRecipeNutrients(r);
+          return `<button class="suggestion-item suggestion-recipe" data-recipe-id="${r.id}" data-name="${escapeHtml(r.name)}">📖 ${escapeHtml(r.name)} <small class="muted">(${Math.round(nutrients.calories)} kcal)</small></button>`;
+        }
+        return `<button class="suggestion-item" data-code="${r.code}" data-name="${escapeHtml(r.name)}">${escapeHtml(r.name)} <small class="muted">(${r.code})</small></button>`;
+      }).join('');
       selectedIndex = -1;
       attachSuggestionHandlers();
     }, 200);
@@ -999,7 +1043,14 @@ document.addEventListener('DOMContentLoaded', () => {
       } else if (e.key === 'Enter' && selectedIndex >= 0) {
         e.preventDefault();
         const btn = items[selectedIndex];
-        addMeal(btn.dataset.code, btn.dataset.name);
+        if (btn.dataset.recipeId) {
+          addRecipeAsMeal(parseInt(btn.dataset.recipeId));
+          foodInput.value = '';
+          sugg.innerHTML = '';
+          selectedIndex = -1;
+        } else {
+          addMeal(btn.dataset.code, btn.dataset.name);
+        }
       } else if (e.key === 'Escape') {
         sugg.innerHTML = '';
         selectedIndex = -1;

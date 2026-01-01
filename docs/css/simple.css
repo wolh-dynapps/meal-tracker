@@ -1005,6 +1005,17 @@ button:active { transform: none; }
   font-size: 14px;
 }
 
+.suggestion-recipe {
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+  border-left: 3px solid var(--success);
+}
+
+.suggestion-recipe:hover,
+.suggestion-recipe.selected {
+  background: var(--bg-tertiary);
+  border-left-color: var(--accent);
+}
+
 /* ========== NUTRIENTS ========== */
 .nutrient-list {
   padding: 10px;

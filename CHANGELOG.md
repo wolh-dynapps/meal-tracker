@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.2] - 2026-01-01
+
+### Added
+- **Recipes in Food Search** — Recipes now appear in the main food search bar with 📖 icon
+- **Accent-Tolerant Search** — Fuzzy search now handles French accents (é→e, ô→o, etc.)
+
+### Changed
+- **Quick Suggestions** — Recipes shown first when focusing the search bar, before favorites and recent
+
+### Technical
+- **Service Worker v7** — Updated cache version for new features
+
+---
+
 ## [1.2.1] - 2026-01-01
 
 ### Fixed
