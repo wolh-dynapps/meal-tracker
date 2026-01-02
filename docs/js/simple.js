@@ -988,6 +988,57 @@ function importData(file) {
   reader.readAsText(file);
 }
 
+function exportRecipes() {
+  if (recipes.length === 0) {
+    showNotification('Aucune recette à exporter', true);
+    return;
+  }
+  const data = { recipes, exportedAt: new Date().toISOString() };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `recettes-${getTodayDate()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showNotification(`${recipes.length} recette(s) exportée(s)`);
+}
+
+function importRecipes(file) {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      const importedRecipes = data.recipes || data;
+      if (!Array.isArray(importedRecipes)) {
+        showNotification('Format invalide', true);
+        return;
+      }
+      // Validate recipe structure
+      const validRecipes = importedRecipes.filter(r =>
+        r.name && Array.isArray(r.ingredients) && r.ingredients.length > 0
+      );
+      if (validRecipes.length === 0) {
+        showNotification('Aucune recette valide trouvée', true);
+        return;
+      }
+      // Assign new IDs to avoid conflicts
+      const newRecipes = validRecipes.map(r => ({
+        ...r,
+        id: Date.now() + Math.random() * 1000,
+        createdAt: r.createdAt || new Date().toISOString()
+      }));
+      recipes = [...recipes, ...newRecipes];
+      saveRecipes();
+      render();
+      showNotification(`${newRecipes.length} recette(s) importée(s)`);
+    } catch (err) {
+      showNotification('Fichier invalide', true);
+    }
+  };
+  reader.readAsText(file);
+}
+
 function setGoal(newGoal) {
   dailyGoal = parseInt(newGoal) || 2000;
   localStorage.setItem(GOAL_KEY, dailyGoal);
@@ -1307,6 +1358,17 @@ document.addEventListener('DOMContentLoaded', () => {
   if (importInput) {
     importInput.addEventListener('change', (e) => {
       if (e.target.files[0]) importData(e.target.files[0]);
+    });
+  }
+
+  // Export/Import Recipes
+  const exportRecipesBtn = document.getElementById('exportRecipesBtn');
+  if (exportRecipesBtn) exportRecipesBtn.addEventListener('click', exportRecipes);
+
+  const importRecipesInput = document.getElementById('importRecipesInput');
+  if (importRecipesInput) {
+    importRecipesInput.addEventListener('change', (e) => {
+      if (e.target.files[0]) importRecipes(e.target.files[0]);
     });
   }
 

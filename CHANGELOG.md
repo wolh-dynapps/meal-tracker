@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.5] - 2026-01-02
+
+### Added
+- **Import/Export Recettes** — Boutons dédiés pour exporter et importer uniquement les recettes (indépendamment des repas)
+- **Recettes de démo** — 15 recettes prêtes à importer (`scripts/demo_recipes.json`)
+- **Données de démo** — Script pour générer 1 an de repas fictifs (`scripts/generate_demo_data.py`)
+
+### Technical
+- **Service Worker v15** — Updated cache version
+
+---
+
 ## [1.2.4] - 2026-01-01
 
 ### Added

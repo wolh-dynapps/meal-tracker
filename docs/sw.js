@@ -1,7 +1,7 @@
-/* Meal Tracker Service Worker v14 - GitHub Pages compatible */
+/* Meal Tracker Service Worker v15 - GitHub Pages compatible */
 
-const CACHE_NAME = 'meal-tracker-v14';
-const RUNTIME_CACHE = 'meal-tracker-runtime-v14';
+const CACHE_NAME = 'meal-tracker-v15';
+const RUNTIME_CACHE = 'meal-tracker-runtime-v15';
 
 // Get base path from service worker location
 const SW_PATH = self.location.pathname;
