@@ -26,6 +26,7 @@ let pendingSync = JSON.parse(localStorage.getItem(PENDING_SYNC_KEY) || '[]');
 // History filters
 let historySearchQuery = '';
 let historyCategoryFilter = '';
+let historyDaysVisible = 7;  // Default: show only last 7 days for performance
 
 // Categories
 const MEAL_CATEGORIES = [
@@ -882,14 +883,23 @@ function renderHistoryList() {
     return;
   }
 
+  // Date range filter for performance (only when not searching)
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - historyDaysVisible);
+  const cutoffStr = cutoffDate.toISOString().slice(0, 10);
+
+  const isFiltering = historySearchQuery || historyCategoryFilter;
+  const visibleMeals = isFiltering ? sorted : sorted.filter(m => m.date >= cutoffStr);
+  const hiddenCount = sorted.length - visibleMeals.length;
+
   // Group by date
   const grouped = {};
-  sorted.forEach(meal => {
+  visibleMeals.forEach(meal => {
     if (!grouped[meal.date]) grouped[meal.date] = [];
     grouped[meal.date].push(meal);
   });
 
-  listContainer.innerHTML = Object.entries(grouped).map(([date, dateMeals]) => {
+  let html = Object.entries(grouped).map(([date, dateMeals]) => {
     const dayCalories = dateMeals.reduce((sum, m) => sum + m.calories, 0);
     return `
       <div class="day-group">
@@ -902,7 +912,32 @@ function renderHistoryList() {
     `;
   }).join('');
 
-  populateNutrients(sorted);
+  // Add "Load more" button if there are hidden meals
+  if (hiddenCount > 0) {
+    html += `
+      <div class="load-more-container">
+        <button type="button" class="btn-load-more" onclick="loadMoreHistory()">
+          Charger plus (${hiddenCount} repas)
+        </button>
+        <button type="button" class="btn-load-all" onclick="loadAllHistory()">
+          Tout afficher
+        </button>
+      </div>
+    `;
+  }
+
+  listContainer.innerHTML = html;
+  populateNutrients(visibleMeals);
+}
+
+function loadMoreHistory() {
+  historyDaysVisible += 30;  // Load 30 more days
+  renderHistoryList();
+}
+
+function loadAllHistory() {
+  historyDaysVisible = 99999;  // Show all
+  renderHistoryList();
 }
 
 // ========== CRUD REPAS ==========

@@ -903,6 +903,47 @@ button:active { transform: none; }
   opacity: 0.9;
 }
 
+/* Load more buttons */
+.load-more-container {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  padding: 20px;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+}
+
+.btn-load-more,
+.btn-load-all {
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-load-more {
+  background: var(--accent);
+  color: white;
+  border: none;
+}
+
+.btn-load-more:hover {
+  background: var(--accent-hover);
+}
+
+.btn-load-all {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+
+.btn-load-all:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
 .meal-item {
   background: var(--bg-primary);
   padding: 15px;

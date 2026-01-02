@@ -2,22 +2,22 @@
   "recipes": [
     {
       "id": 1700000001,
-      "name": "Petit-déjeuner complet",
+      "name": "Petit-dejeuner complet",
       "ingredients": [
-        {"code": "7501", "name": "Pain blanc (baguette)", "grams": 80},
-        {"code": "19005", "name": "Beurre", "grams": 15},
-        {"code": "31029", "name": "Confiture", "grams": 25},
-        {"code": "24087", "name": "Oeuf dur", "grams": 50},
-        {"code": "22007", "name": "Café sans sucre", "grams": 200}
+        {"code": "7001", "name": "Pain blanc (baguette)", "grams": 80},
+        {"code": "16400", "name": "Beurre", "grams": 15},
+        {"code": "31006", "name": "Confiture", "grams": 25},
+        {"code": "22010", "name": "Oeuf dur", "grams": 50},
+        {"code": "18004", "name": "Cafe sans sucre", "grams": 200}
       ],
       "createdAt": "2025-01-01T08:00:00.000Z"
     },
     {
       "id": 1700000002,
-      "name": "Bowl petit-déj protéiné",
+      "name": "Bowl petit-dej proteine",
       "ingredients": [
-        {"code": "19045", "name": "Fromage blanc 0%", "grams": 150},
-        {"code": "13039", "name": "Banane", "grams": 100},
+        {"code": "19644", "name": "Fromage blanc 0%", "grams": 150},
+        {"code": "13005", "name": "Banane", "grams": 100},
         {"code": "15008", "name": "Amandes", "grams": 20},
         {"code": "31014", "name": "Miel", "grams": 15}
       ],
@@ -25,23 +25,23 @@
     },
     {
       "id": 1700000003,
-      "name": "Salade César maison",
+      "name": "Salade Cesar maison",
       "ingredients": [
-        {"code": "20047", "name": "Salade verte", "grams": 150},
-        {"code": "37746", "name": "Poulet rôti", "grams": 120},
-        {"code": "12556", "name": "Fromage emmental", "grams": 30},
-        {"code": "7901", "name": "Pain complet (croûtons)", "grams": 40}
+        {"code": "25604", "name": "Salade verte", "grams": 150},
+        {"code": "36005", "name": "Poulet roti", "grams": 120},
+        {"code": "12115", "name": "Fromage emmental", "grams": 30},
+        {"code": "7110", "name": "Pain complet (croutons)", "grams": 40}
       ],
       "createdAt": "2025-01-01T12:00:00.000Z"
     },
     {
       "id": 1700000004,
-      "name": "Pâtes bolognaise",
+      "name": "Pates bolognaise",
       "ingredients": [
-        {"code": "9017", "name": "Pâtes cuites", "grams": 250},
-        {"code": "36014", "name": "Steak haché 15%", "grams": 125},
+        {"code": "9811", "name": "Pates cuites", "grams": 250},
+        {"code": "36014", "name": "Steak hache 15%", "grams": 125},
         {"code": "20293", "name": "Tomate", "grams": 100},
-        {"code": "12556", "name": "Fromage emmental", "grams": 20}
+        {"code": "12115", "name": "Fromage emmental", "grams": 20}
       ],
       "createdAt": "2025-01-01T12:00:00.000Z"
     },
@@ -49,16 +49,16 @@
       "id": 1700000005,
       "name": "Riz au poulet curry",
       "ingredients": [
-        {"code": "9820", "name": "Riz blanc cuit", "grams": 200},
-        {"code": "27541", "name": "Poulet au curry", "grams": 300}
+        {"code": "9104", "name": "Riz blanc cuit", "grams": 200},
+        {"code": "25174", "name": "Poulet au curry", "grams": 300}
       ],
       "createdAt": "2025-01-01T12:00:00.000Z"
     },
     {
       "id": 1700000006,
-      "name": "Saumon légumes vapeur",
+      "name": "Saumon legumes vapeur",
       "ingredients": [
-        {"code": "25030", "name": "Saumon cuit", "grams": 150},
+        {"code": "25996", "name": "Saumon cuit", "grams": 150},
         {"code": "20196", "name": "Haricots verts", "grams": 150},
         {"code": "20089", "name": "Carottes cuites", "grams": 100}
       ],
@@ -68,27 +68,27 @@
       "id": 1700000007,
       "name": "Omelette champignons",
       "ingredients": [
-        {"code": "24087", "name": "Omelette", "grams": 150},
+        {"code": "22500", "name": "Omelette nature", "grams": 150},
         {"code": "20054", "name": "Champignons", "grams": 100},
-        {"code": "7501", "name": "Pain blanc (baguette)", "grams": 60}
+        {"code": "7001", "name": "Pain blanc (baguette)", "grams": 60}
       ],
       "createdAt": "2025-01-01T19:00:00.000Z"
     },
     {
       "id": 1700000008,
-      "name": "Soupe repas complète",
+      "name": "Soupe repas complete",
       "ingredients": [
-        {"code": "26210", "name": "Soupe de légumes", "grams": 350},
-        {"code": "7901", "name": "Pain complet", "grams": 80},
-        {"code": "12556", "name": "Fromage emmental", "grams": 30}
+        {"code": "26210", "name": "Soupe de legumes", "grams": 350},
+        {"code": "7110", "name": "Pain complet", "grams": 80},
+        {"code": "12115", "name": "Fromage emmental", "grams": 30}
       ],
       "createdAt": "2025-01-01T19:00:00.000Z"
     },
     {
       "id": 1700000009,
-      "name": "Snack énergétique",
+      "name": "Snack energetique",
       "ingredients": [
-        {"code": "13039", "name": "Banane", "grams": 120},
+        {"code": "13005", "name": "Banane", "grams": 120},
         {"code": "15008", "name": "Amandes", "grams": 25},
         {"code": "31001", "name": "Chocolat noir", "grams": 20}
       ],
@@ -96,21 +96,21 @@
     },
     {
       "id": 1700000010,
-      "name": "Goûter léger",
+      "name": "Gouter leger",
       "ingredients": [
-        {"code": "13109", "name": "Pomme", "grams": 180},
-        {"code": "17714", "name": "Yaourt nature", "grams": 125}
+        {"code": "13039", "name": "Pomme", "grams": 180},
+        {"code": "19593", "name": "Yaourt nature", "grams": 125}
       ],
       "createdAt": "2025-01-01T16:00:00.000Z"
     },
     {
       "id": 1700000011,
-      "name": "Thon-crudités express",
+      "name": "Thon-crudites express",
       "ingredients": [
-        {"code": "25039", "name": "Thon en conserve", "grams": 130},
-        {"code": "20047", "name": "Salade verte", "grams": 100},
+        {"code": "26039", "name": "Thon en conserve", "grams": 130},
+        {"code": "25604", "name": "Salade verte", "grams": 100},
         {"code": "20293", "name": "Tomate", "grams": 150},
-        {"code": "7901", "name": "Pain complet", "grams": 60}
+        {"code": "7110", "name": "Pain complet", "grams": 60}
       ],
       "createdAt": "2025-01-01T12:00:00.000Z"
     },
@@ -119,7 +119,7 @@
       "name": "Gratin dauphinois complet",
       "ingredients": [
         {"code": "27003", "name": "Gratin dauphinois", "grams": 250},
-        {"code": "20047", "name": "Salade verte", "grams": 80}
+        {"code": "25604", "name": "Salade verte", "grams": 80}
       ],
       "createdAt": "2025-01-01T19:00:00.000Z"
     },
@@ -127,8 +127,8 @@
       "id": 1700000013,
       "name": "Quiche + salade",
       "ingredients": [
-        {"code": "27201", "name": "Quiche lorraine", "grams": 180},
-        {"code": "20047", "name": "Salade verte", "grams": 100},
+        {"code": "25405", "name": "Quiche lorraine", "grams": 180},
+        {"code": "25604", "name": "Salade verte", "grams": 100},
         {"code": "20293", "name": "Tomate", "grams": 100}
       ],
       "createdAt": "2025-01-01T12:00:00.000Z"
@@ -138,7 +138,7 @@
       "name": "Lasagnes maison",
       "ingredients": [
         {"code": "27004", "name": "Lasagnes", "grams": 350},
-        {"code": "20047", "name": "Salade verte", "grams": 80}
+        {"code": "25604", "name": "Salade verte", "grams": 80}
       ],
       "createdAt": "2025-01-01T19:00:00.000Z"
     },
@@ -146,8 +146,8 @@
       "id": 1700000015,
       "name": "Poulet basquaise riz",
       "ingredients": [
-        {"code": "27649", "name": "Poulet basquaise", "grams": 280},
-        {"code": "9820", "name": "Riz blanc cuit", "grams": 180}
+        {"code": "25190", "name": "Poulet basquaise", "grams": 280},
+        {"code": "9104", "name": "Riz blanc cuit", "grams": 180}
       ],
       "createdAt": "2025-01-01T19:00:00.000Z"
     }

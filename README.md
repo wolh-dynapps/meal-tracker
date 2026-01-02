@@ -20,12 +20,13 @@ A lightweight, accessible Progressive Web App for tracking your daily meals and 
 - ⭐ **Favorites** — Quick access to frequent foods
 - 🕒 **Recent Foods** — Last used items
 - ✏️ **Edit Meals** — Modify existing entries
-- 💾 **Export/Import** — JSON backup of all data
+- 💾 **Export/Import** — JSON backup of all data + separate recipe import/export
+- ⚡ **Lazy Loading** — Shows 7 days by default, load more on demand
 
 ### Technical
 - 📱 **PWA** — Installable, works offline
 - ♿ **Accessible** — WCAG 2.1 AA compliant
-- 🚀 **Fast** — Vanilla JS, no frameworks
+- 🚀 **Fast** — Vanilla JS, no frameworks, gzip-compressed data (86% smaller)
 - 🔔 **Notifications** — Optional meal reminders
 
 ---
@@ -75,7 +76,10 @@ meal-tracker/
 │   └── ciqual/ciqual_index.json  # Food database
 ├── scripts/
 │   ├── ciqual/*.xml           # Source Ciqual data (dev only)
-│   └── fill_all_nutrients.py  # Build script
+│   ├── fill_all_nutrients.py  # Build script
+│   ├── generate_demo_data.py  # Demo data generator (1 year)
+│   ├── demo_data_1year.json   # Generated demo meals
+│   └── demo_recipes.json      # 15 demo recipes
 ├── CHANGELOG.md
 ├── CLAUDE.md                  # Dev guidelines
 └── README.md
@@ -100,6 +104,13 @@ meal-tracker/
 ```bash
 python3 scripts/fill_all_nutrients.py
 ```
+
+### Generate Demo Data
+```bash
+cd scripts
+python3 generate_demo_data.py  # Creates 1 year of meals (~3000 entries)
+```
+Import via Stats tab → Import button.
 
 ### Test Offline
 1. Open DevTools → Application → Service Workers
