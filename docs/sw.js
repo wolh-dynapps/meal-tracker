@@ -1,7 +1,7 @@
-/* Meal Tracker Service Worker v15 - GitHub Pages compatible */
+/* Meal Tracker Service Worker v16 - GitHub Pages compatible */
 
-const CACHE_NAME = 'meal-tracker-v15';
-const RUNTIME_CACHE = 'meal-tracker-runtime-v15';
+const CACHE_NAME = 'meal-tracker-v16';
+const RUNTIME_CACHE = 'meal-tracker-runtime-v16';
 
 // Get base path from service worker location
 const SW_PATH = self.location.pathname;
@@ -13,7 +13,8 @@ const STATIC_FILES = [
   'css/simple.css',
   'js/simple.js',
   'manifest.json',
-  'ciqual/ciqual_index.json'
+  'ciqual/ciqual_index.json.gz',
+  'ciqual/ciqual_index.json'  // Fallback for older browsers
 ];
 
 const STATIC_ASSETS = STATIC_FILES.map(f => BASE_PATH + f);

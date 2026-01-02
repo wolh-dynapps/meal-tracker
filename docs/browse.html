@@ -614,9 +614,29 @@
 
     async function loadData() {
       try {
-        const resp = await fetch('./ciqual/ciqual_index.json');
-        if (!resp.ok) throw new Error('Impossible de charger les données');
-        const data = await resp.json();
+        let data;
+
+        // Try loading compressed version first (86% smaller)
+        if (typeof DecompressionStream !== 'undefined') {
+          try {
+            const resp = await fetch('./ciqual/ciqual_index.json.gz');
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            const ds = new DecompressionStream('gzip');
+            const decompressed = resp.body.pipeThrough(ds);
+            const text = await new Response(decompressed).text();
+            data = JSON.parse(text);
+          } catch (gzErr) {
+            console.warn('Gzip load failed, trying uncompressed:', gzErr.message);
+            data = null;
+          }
+        }
+
+        // Fallback to uncompressed JSON
+        if (!data) {
+          const resp = await fetch('./ciqual/ciqual_index.json');
+          if (!resp.ok) throw new Error('Impossible de charger les données');
+          data = await resp.json();
+        }
 
         allFoods = Object.entries(data).map(([code, item]) => ({
           code,

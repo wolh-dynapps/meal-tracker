@@ -400,10 +400,29 @@ async function loadCiqualIndex(options = {}) {
           else updatePreloadStatus(`Tentative ${attempt}/${CIQUAL_MAX_RETRIES}...`);
         }
 
-        const resp = await fetch('./ciqual/ciqual_index.json');
-        if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+        let short;
 
-        const short = await resp.json();
+        // Try loading compressed version first (86% smaller)
+        if (typeof DecompressionStream !== 'undefined') {
+          try {
+            const resp = await fetch('./ciqual/ciqual_index.json.gz');
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            const ds = new DecompressionStream('gzip');
+            const decompressed = resp.body.pipeThrough(ds);
+            const text = await new Response(decompressed).text();
+            short = JSON.parse(text);
+          } catch (gzErr) {
+            console.warn('Gzip load failed, trying uncompressed:', gzErr.message);
+            short = null;
+          }
+        }
+
+        // Fallback to uncompressed JSON
+        if (!short) {
+          const resp = await fetch('./ciqual/ciqual_index.json');
+          if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+          short = await resp.json();
+        }
         if (!short || typeof short !== 'object' || Object.keys(short).length === 0) {
           throw new Error('Donnees invalides');
         }

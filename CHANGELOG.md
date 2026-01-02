@@ -8,9 +8,11 @@ All notable changes to this project will be documented in this file.
 - **Import/Export Recettes** — Boutons dédiés pour exporter et importer uniquement les recettes (indépendamment des repas)
 - **Recettes de démo** — 15 recettes prêtes à importer (`scripts/demo_recipes.json`)
 - **Données de démo** — Script pour générer 1 an de repas fictifs (`scripts/generate_demo_data.py`)
+- **Compression Gzip** — Base de données Ciqual compressée (932 KB → 129 KB, -86%)
+- **DecompressionStream** — Décompression native dans le navigateur, fallback automatique pour anciens navigateurs
 
 ### Technical
-- **Service Worker v15** — Updated cache version
+- **Service Worker v16** — Updated cache version, precaches both .gz and .json
 
 ---
 
